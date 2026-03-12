@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Safra AI — Inteligência Artificial para Private Banking</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500;700&family=Inter:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{font-size:16px;scroll-behavior:smooth}
+:root{
+  --bg:#06080f;--s1:#0b1120;--s2:#0f1928;--s3:#141f32;
+  --b1:rgba(255,255,255,.07);--b2:rgba(255,255,255,.04);--b3:rgba(255,255,255,.13);
+  --tp:#ffffff;--ts:#8aa4c8;--tt:#4a6585;--tg:#243550;
+  --accent:#3b82f6;--ag:rgba(59,130,246,.15);--ad:rgba(59,130,246,.08);
+  --green:#10b981;--gold:#c5a55a;--red:#ef4444;
+  --fd:'Syne',sans-serif;--fm:'IBM Plex Mono',monospace;--fb:'Inter',sans-serif;
+}
+body{font-family:var(--fb);background:var(--bg);color:var(--ts);line-height:1.6;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(59,130,246,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(59,130,246,.02) 1px,transparent 1px);background-size:48px 48px;pointer-events:none;z-index:0}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(6,8,15,.92);backdrop-filter:blur(20px);border-bottom:1px solid var(--b1);display:flex;align-items:center;justify-content:space-between;padding:0 48px;height:60px}
+.nav-logo{font-family:var(--fd);font-size:1.1rem;font-weight:800;color:var(--tp);letter-spacing:-.02em}
+.nav-logo span{color:var(--gold)}
+.nav-links{display:flex;gap:20px;align-items:center}
+.nav-links a{font-family:var(--fm);font-size:.62rem;letter-spacing:.10em;text-transform:uppercase;color:var(--tt);text-decoration:none;transition:color .15s}
+.nav-links a:hover{color:var(--tp)}
+
+/* SECTIONS */
+section{position:relative;z-index:1}
+.container{max-width:1200px;margin:0 auto;padding:0 48px}
+
+/* HERO */
+#hero{min-height:100vh;display:flex;align-items:center;padding-top:60px}
+.hero-inner{max-width:1200px;margin:0 auto;padding:100px 48px 80px;display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center}
+.hero-eyebrow{font-family:var(--fm);font-size:.65rem;color:var(--gold);letter-spacing:.2em;text-transform:uppercase;margin-bottom:20px;display:flex;align-items:center;gap:10px}
+.hero-eyebrow::before{content:'';display:block;width:32px;height:1px;background:var(--gold)}
+.hero-h1{font-family:var(--fd);font-size:clamp(2.4rem,4.5vw,3.8rem);font-weight:800;color:var(--tp);line-height:1.1;letter-spacing:-.03em;margin-bottom:24px}
+.hero-h1 em{font-style:normal;background:linear-gradient(135deg,var(--gold),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero-sub{font-size:1.05rem;color:var(--ts);line-height:1.8;margin-bottom:40px;max-width:480px}
+.hero-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:40px}
+.h-stat{text-align:center;padding:20px;background:var(--s1);border:1px solid var(--b1);border-radius:8px}
+.h-stat-num{font-family:var(--fd);font-size:2rem;font-weight:800;color:var(--gold);display:block}
+.h-stat-label{font-family:var(--fm);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--tt);margin-top:4px}
+
+/* Hero visual */
+.hero-visual{position:relative;height:520px;display:flex;align-items:center;justify-content:center}
+.hero-glow{position:absolute;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(197,165,90,.15),transparent 70%);animation:pulse 4s ease-in-out infinite}
+@keyframes pulse{0%,100%{transform:scale(1);opacity:.6}50%{transform:scale(1.15);opacity:1}}
+.hero-icon{font-size:120px;z-index:2;position:relative}
+
+/* SECTION HEADERS */
+.sec-header{text-align:center;margin-bottom:64px}
+.sec-eyebrow{font-family:var(--fm);font-size:.65rem;color:var(--accent);letter-spacing:.2em;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;justify-content:center;gap:10px}
+.sec-eyebrow::before,.sec-eyebrow::after{content:'';width:24px;height:1px;background:var(--accent)}
+.sec-title{font-family:var(--fd);font-size:clamp(1.8rem,3vw,2.6rem);font-weight:800;color:var(--tp);letter-spacing:-.02em;margin-bottom:16px}
+.sec-sub{font-size:1rem;color:var(--ts);max-width:640px;margin:0 auto;line-height:1.7}
+
+/* MINDMAP */
+#mindmap{padding:100px 0;background:var(--s1);border-top:1px solid var(--b1);border-bottom:1px solid var(--b1)}
+#mindmap-canvas{width:100%;height:700px;border-radius:12px;border:1px solid var(--b1);background:var(--bg);overflow:hidden}
+#mindmap-tooltip{position:absolute;background:var(--s3);border:1px solid var(--b3);border-radius:8px;padding:16px 20px;font-size:.85rem;color:var(--ts);max-width:300px;pointer-events:none;opacity:0;transition:opacity .2s;z-index:50;box-shadow:0 8px 32px rgba(0,0,0,.4)}
+#mindmap-tooltip h4{font-family:var(--fd);color:var(--tp);font-size:.95rem;margin-bottom:6px}
+
+/* MODULE SECTIONS */
+.module-section{padding:100px 0}
+.module-section:nth-child(even){background:var(--s1)}
+
+/* CARDS GRID */
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:24px}
+.card{background:var(--s2);border:1px solid var(--b1);border-radius:12px;padding:32px;transition:all .2s}
+.card:hover{border-color:var(--b3);transform:translateY(-2px)}
+.card-icon{font-size:2rem;margin-bottom:16px}
+.card-title{font-family:var(--fd);font-size:1.1rem;font-weight:700;color:var(--tp);margin-bottom:8px}
+.card-sub{font-family:var(--fm);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:12px}
+.card-body{font-size:.9rem;color:var(--ts);line-height:1.7}
+.card-stat{font-family:var(--fd);font-size:1.4rem;font-weight:800;color:var(--gold);display:block;margin-top:12px}
+
+/* BANK CARDS */
+.bank-card{position:relative;overflow:hidden}
+.bank-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--accent),var(--green))}
+.bank-flag{font-family:var(--fm);font-size:.55rem;letter-spacing:.1em;text-transform:uppercase;color:var(--tt);margin-bottom:4px}
+
+/* LIST STYLES */
+.check-list{list-style:none;padding:0}
+.check-list li{padding:8px 0;padding-left:28px;position:relative;font-size:.9rem}
+.check-list li::before{content:'✅';position:absolute;left:0;top:8px;font-size:.75rem}
+.x-list li::before{content:'❌'}
+.fear-list li::before{content:'⚠️'}
+
+/* TIER SYSTEM */
+.tier{margin-bottom:40px;padding:32px;border-radius:12px;border:1px solid var(--b1)}
+.tier-green{background:rgba(16,185,129,.05);border-color:rgba(16,185,129,.2)}
+.tier-gold{background:rgba(197,165,90,.05);border-color:rgba(197,165,90,.2)}
+.tier-red{background:rgba(239,68,68,.05);border-color:rgba(239,68,68,.2)}
+.tier-title{font-family:var(--fd);font-size:1.2rem;font-weight:700;color:var(--tp);margin-bottom:4px}
+.tier-sub{font-family:var(--fm);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;margin-bottom:16px}
+.tier-green .tier-sub{color:var(--green)}
+.tier-gold .tier-sub{color:var(--gold)}
+.tier-red .tier-sub{color:var(--red)}
+.use-case{padding:16px 0;border-bottom:1px solid var(--b1)}
+.use-case:last-child{border-bottom:none}
+.use-case-name{font-family:var(--fd);font-weight:600;color:var(--tp);font-size:.95rem}
+.use-case-desc{font-size:.85rem;color:var(--ts);margin-top:4px}
+.use-case-ref{font-family:var(--fm);font-size:.55rem;color:var(--tt);letter-spacing:.05em;margin-top:4px}
+
+/* ARCHITECTURE */
+.arch-stack{display:flex;flex-direction:column;gap:8px;max-width:800px;margin:0 auto}
+.arch-layer{padding:24px 32px;border-radius:8px;border:1px solid var(--b1);text-align:center;transition:all .3s;cursor:default}
+.arch-layer:hover{transform:scale(1.02);border-color:var(--b3)}
+.arch-layer-title{font-family:var(--fd);font-size:1rem;font-weight:700;color:var(--tp);margin-bottom:4px}
+.arch-layer-desc{font-size:.8rem;color:var(--ts)}
+.arch-arrow{text-align:center;font-size:1.2rem;color:var(--tt);padding:4px 0}
+.l-app{background:linear-gradient(135deg,rgba(59,130,246,.1),rgba(59,130,246,.02))}
+.l-sec{background:linear-gradient(135deg,rgba(239,68,68,.08),rgba(239,68,68,.02))}
+.l-ai{background:linear-gradient(135deg,rgba(197,165,90,.1),rgba(197,165,90,.02))}
+.l-know{background:linear-gradient(135deg,rgba(16,185,129,.08),rgba(16,185,129,.02))}
+.l-data{background:linear-gradient(135deg,rgba(139,92,246,.08),rgba(139,92,246,.02))}
+.l-gov{background:linear-gradient(135deg,rgba(244,114,182,.08),rgba(244,114,182,.02))}
+
+/* TIMELINE */
+.timeline{position:relative;padding:40px 0}
+.timeline::before{content:'';position:absolute;left:50%;top:0;bottom:0;width:2px;background:var(--b1);transform:translateX(-50%)}
+.tl-item{position:relative;width:50%;padding:20px 40px;margin-bottom:24px}
+.tl-item:nth-child(odd){margin-left:0;text-align:right}
+.tl-item:nth-child(even){margin-left:50%;text-align:left}
+.tl-item::before{content:'';position:absolute;top:28px;width:16px;height:16px;border-radius:50%;background:var(--accent);border:3px solid var(--bg);z-index:2}
+.tl-item:nth-child(odd)::before{right:-8px}
+.tl-item:nth-child(even)::before{left:-8px}
+.tl-phase{font-family:var(--fm);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:4px}
+.tl-title{font-family:var(--fd);font-size:1.1rem;font-weight:700;color:var(--tp);margin-bottom:8px}
+.tl-body{font-size:.85rem;color:var(--ts);line-height:1.7}
+.tl-kpi{font-family:var(--fm);font-size:.7rem;color:var(--gold);margin-top:8px}
+
+/* CRM */
+.crm-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:24px}
+.crm-card{background:var(--s2);border:1px solid var(--b1);border-radius:12px;padding:28px}
+.crm-card-icon{font-size:1.8rem;margin-bottom:12px}
+.crm-card-title{font-family:var(--fd);font-size:1rem;font-weight:700;color:var(--tp);margin-bottom:8px}
+.crm-card-body{font-size:.85rem;color:var(--ts);line-height:1.7}
+
+/* FOOTER */
+footer{padding:80px 0 40px;border-top:1px solid var(--b1);text-align:center}
+.footer-quote{font-family:var(--fd);font-size:clamp(1.4rem,2.5vw,2rem);font-weight:800;color:var(--tp);letter-spacing:-.02em;margin-bottom:8px}
+.footer-quote em{font-style:italic;color:var(--gold)}
+.footer-sub{font-family:var(--fm);font-size:.7rem;color:var(--tt);letter-spacing:.1em;text-transform:uppercase;margin-bottom:40px}
+.footer-credit{font-size:.75rem;color:var(--tg)}
+.footer-credit a{color:var(--tt);text-decoration:none}
+
+/* RESISTANCE GRID */
+.resist-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:24px}
+.resist-card{background:var(--s2);border:1px solid var(--b1);border-radius:12px;padding:28px}
+.resist-num{font-family:var(--fd);font-size:2rem;font-weight:800;color:var(--b3);margin-bottom:8px}
+.resist-title{font-family:var(--fd);font-size:1rem;font-weight:700;color:var(--tp);margin-bottom:8px}
+.resist-desc{font-size:.85rem;color:var(--ts);line-height:1.7;margin-bottom:12px}
+.resist-fix{font-family:var(--fm);font-size:.75rem;color:var(--green);line-height:1.6;padding:12px;background:rgba(16,185,129,.05);border-radius:6px;border-left:3px solid var(--green)}
+
+/* PATTERN BOX */
+.pattern-box{background:var(--s3);border:1px solid var(--b3);border-radius:12px;padding:32px;margin-top:48px}
+.pattern-box h3{font-family:var(--fd);font-size:1.1rem;color:var(--tp);margin-bottom:16px}
+.pattern-list{list-style:none;padding:0;counter-reset:pat}
+.pattern-list li{padding:8px 0;padding-left:36px;position:relative;font-size:.9rem;counter-increment:pat}
+.pattern-list li::before{content:counter(pat);position:absolute;left:0;top:8px;font-family:var(--fm);font-size:.7rem;color:var(--accent);background:var(--ag);width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+  nav{padding:0 20px}
+  .nav-links{display:none}
+  .hero-inner{grid-template-columns:1fr;padding:80px 20px 40px;gap:40px}
+  .hero-visual{height:300px}
+  .container{padding:0 20px}
+  .hero-stats{grid-template-columns:1fr}
+  .cards-grid{grid-template-columns:1fr}
+  .crm-grid{grid-template-columns:1fr}
+  .resist-grid{grid-template-columns:1fr}
+  .timeline::before{left:20px}
+  .tl-item,.tl-item:nth-child(odd),.tl-item:nth-child(even){width:100%;margin-left:40px;text-align:left;padding:16px 20px}
+  .tl-item::before,.tl-item:nth-child(odd)::before,.tl-item:nth-child(even)::before{left:-28px}
+  #mindmap-canvas{height:500px}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">Safra<span>AI</span></div>
+  <div class="nav-links">
+    <a href="#mindmap">Mindmap</a>
+    <a href="#banco">O Banco</a>
+    <a href="#benchmark">Benchmark</a>
+    <a href="#psicologia">Psicologia</a>
+    <a href="#casos">Casos de Uso</a>
+    <a href="#arquitetura">Arquitetura</a>
+    <a href="#roadmap">Roadmap</a>
+    <a href="#crm">CRM Intelligence</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-inner">
+    <div>
+      <div class="hero-eyebrow">Eval Completo — Março 2026</div>
+      <h1 class="hero-h1">Inteligência Artificial para <em>Private Banking</em></h1>
+      <p class="hero-sub">Estudo completo para implementação de AI no Banco Safra, começando pelos clientes High Net Worth. Do diagnóstico à arquitetura — com benchmark global, psicologia do usuário e roadmap de execução.</p>
+      <div class="hero-stats">
+        <div class="h-stat">
+          <span class="h-stat-num" data-target="8">0</span>
+          <div class="h-stat-label">º Maior Banco do Brasil</div>
+        </div>
+        <div class="h-stat">
+          <span class="h-stat-num" data-target="51" data-prefix="US$" data-suffix="B">0</span>
+          <div class="h-stat-label">Em Ativos Totais</div>
+        </div>
+        <div class="h-stat">
+          <span class="h-stat-num" data-target="11" data-suffix="K">0</span>
+          <div class="h-stat-label">Funcionários</div>
+        </div>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="hero-glow"></div>
+      <div class="hero-icon">🏦</div>
+    </div>
+  </div>
+</section>
+
+<!-- NEURAL MINDMAP -->
+<section id="mindmap">
+  <div class="container">
+    <div class="sec-header">
+      <div class="sec-eyebrow">Inteligência Neural</div>
+      <h2 class="sec-title">Mapa de Conexões</h2>
+      <p class="sec-sub">Visualização interativa de todos os módulos do estudo e suas conexões. Arraste os nós para explorar as relações.</p>
+    </div>
+    <div style="position:relative">
+      <div id="mindmap-canvas"></div>
+      <div id="mindmap-tooltip"></div>
+    </div>
+  </div>
+</section>
+
+<!-- MODULE 1: ANÁLISE DO BANCO -->
+<section id="banco" class="module-section">
+  <div class="container">
+    <div class="sec-header">
+      <div class="sec-eyebrow">Módulo 01</div>
+      <h2 class="sec-title">Análise do Banco Safra</h2>
+      <p class="sec-sub">8º maior banco do Brasil, controle familiar, DNA conservador. Alta retenção de clientes HNW por gerações.</p>
+    </div>
+    <div class="cards-grid">
+      <div class="card">
+        <div class="card-icon">🏛️</div>
+        <div class="card-title">DNA Institucional</div>
+        <div class="card-body">Historicamente conservador e discreto. Um dos poucos grandes bancos brasileiros sob controle familiar — agilidade decisória com conservadorismo institucional. Reputação de solidez e segurança patrimonial.</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">💎</div>
+        <div class="card-title">Segmento Private/HNW</div>
+        <div class="card-sub">Ticket: R$ 10M+</div>
+        <div class="card-body">Curadoria exclusiva de carteira, Carteiras Renomadas com visão de longo prazo, Wealth Management, conta global (150+ moedas), produtos estruturados (COEs), família SGS Alternatives.</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">⚔️</div>
+        <div class="card-title">Competição</div>
+        <div class="card-body">Compete com BTG Pactual (líder, US$ 335B AUM), Itaú Private, XP Private, Bradesco Private e UBS Brasil. Não é o maior em AUM, mas tem alta retenção — clientes Safra ficam por gerações.</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">🎯</div>
+        <div class="card-title">Implicação para AI</div>
+        <div class="card-body">AI deve ser invisível e confiável. A força do relacionamento pessoal (gerente) significa que AI deve empoderar o gerente, não substituí-lo. Base HNW é sofisticada — tolerância zero para erros.</div>
+        <span class="card-stat">AI = Superpoder do Gerente</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MODULE 2: BENCHMARK -->
+<section id="benchmark" class="module-section">
+  <div class="container">
+    <div class="sec-header">
+      <div class="sec-eyebrow">Módulo 02</div>
+      <h2 class="sec-title">Benchmark — AI em Wealth Management</h2>
+      <p class="sec-sub">O que os maiores bancos do mundo já estão fazendo com inteligência artificial para atender clientes de alta renda.</p>
+    </div>
+    <div class="cards-grid">
+      <div class="card bank-card">
+        <div class="bank-flag">🇺🇸 Estados Unidos</div>
+        <div class="card-title">Morgan Stanley</div>
+        <div class="card-sub">O Caso de Referência</div>
+        <div class="card-body">AI @ Morgan Stanley Assistant (AIMS) — GPT-4 interno que acessa +100.000 relatórios. Parceria estratégica com OpenAI desde março/2023. Também lançaram "Debrief" para resumo automático de reuniões.</div>
+        <span class="card-stat">98% adoção · 16K+ advisors</span>
+      </div>
+      <div class="card bank-card">
+        <div class="bank-flag">🇺🇸 Estados Unidos</div>
+        <div class="card-title">JP Morgan Chase</div>
+        <div class="card-sub">Escala Massiva</div>
+        <div class="card-body">LLM Suite usado por 200K+ funcionários diariamente. Infraestrutura Omni AI. Pilotando IndexGPT para recomendação de investimento. Copilots em banking, wealth e markets.</div>
+        <span class="card-stat">US$ 2B/ano em AI</span>
+      </div>
+      <div class="card bank-card">
+        <div class="bank-flag">🇺🇸 Estados Unidos</div>
+        <div class="card-title">Goldman Sachs</div>
+        <div class="card-sub">Multi-Modelo</div>
+        <div class="card-body">GS AI Assistant — model-agnostic (GPT-4o, Gemini, Claude). Sumariza documentos complexos, gera rascunhos de pitchbooks, análise de dados, tradução de research para idioma do cliente.</div>
+        <span class="card-stat">Flexibilidade > Lock-in</span>
+      </div>
+      <div class="card bank-card">
+        <div class="bank-flag">🇨🇭 Suíça</div>
+        <div class="card-title">UBS</div>
+        <div class="card-sub">Plataforma "Eliza"</div>
+        <div class="card-body">AI marketplace interno com múltiplos modelos aprovados. Chatbot interno "Red" integrado à base de conhecimento. Explorando AI agêntica (agentes autônomos).</div>
+        <span class="card-stat">46K (90%) onboarded</span>
+      </div>
+      <div class="card bank-card">
+        <div class="bank-flag">🇩🇪 Alemanha</div>
+        <div class="card-title">Deutsche Bank</div>
+        <div class="card-sub">DB Lumina</div>
+        <div class="card-body">Assistente de research usando Google Gemini. Transforma dias de análise em minutos. Milhões de linhas de código, relatórios e auditorias gerados por AI.</div>
+        <span class="card-stat">200+ use cases em produção</span>
+      </div>
+      <div class="card bank-card">
+        <div class="bank-flag">🇧🇷 Brasil</div>
+        <div class="card-title">BTG Pactual</div>
+        <div class="card-sub">Benchmark Local</div>
+        <div class="card-body">Líder em private banking no Brasil (Euromoney 2025). Estratégia platform-first: AI + automação + open finance integrados. Se o Safra não se mover, BTG amplia a vantagem.</div>
+        <span class="card-stat">US$ 335B em AUM</span>
+      </div>
+    </div>
+    <div class="pattern-box">
+      <h3>📊 Padrão Global Identificado</h3>
+      <ol class="pattern-list">
+        <li>Todos começaram <strong style="color:var(--tp)">advisor-facing</strong> (empoderar o humano), não client-facing</li>
+        <li>Compliance e governance vêm <strong style="color:var(--tp)">ANTES</strong> de escalar</li>
+        <li>Os líderes usam AI como <strong style="color:var(--tp)">knowledge layer</strong> — acesso instantâneo à inteligência do banco</li>
+        <li>Client-facing AI só depois de resolver accuracy e compliance</li>
+        <li>Tendência 2026: <strong style="color:var(--tp)">AI agêntica</strong> — agentes que monitoram contas proativamente</li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- MODULE 3: PSICOLOGIA HNW -->
+<section id="psicologia" class="module-section">
+  <div class="container">
+    <div class="sec-header">
+      <div class="sec-eyebrow">Módulo 03</div>
+      <h2 class="sec-title">Psicologia do Cliente HNW</h2>
+      <p class="sec-sub">72% dos HNWIs preferem firmas com produtos personalizados. O que eles valorizam, o que temem, e como a AI precisa se posicionar.</p>
+    </div>
+    <div class="cards-grid">
+      <div class="card">
+        <div class="card-icon">✅</div>
+        <div class="card-title">O Que Funciona</div>
+        <ul class="check-list">
+          <li>AI invisível que melhora o serviço sem o cliente perceber</li>
+          <li>"Seu gerente preparou isso pra você" (mesmo que AI tenha gerado)</li>
+          <li>Insights proativos sobre a carteira</li>
+          <li>Velocidade de resposta: 30 segundos ao invés de 48 horas</li>
+          <li>Escolha — dar ao cliente a opção, nunca forçar</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-icon">❌</div>
+        <div class="card-title">O Que Não Funciona</div>
+        <ul class="check-list x-list">
+          <li>"Fale com nosso assistente virtual" (rejeição imediata)</li>
+          <li>Respostas genéricas sem contexto patrimonial</li>
+          <li>Substituir o contato humano nas decisões importantes</li>
+          <li>Qualquer sensação de "estou sendo automatizado"</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-icon">💡</div>
+        <div class="card-title">O Que Valorizam</div>
+        <ul class="check-list">
+          <li><strong style="color:var(--tp)">Exclusividade</strong> — não querem ser tratados como mais um</li>
+          <li><strong style="color:var(--tp)">Tempo</strong> — o ativo mais escasso do HNW</li>
+          <li><strong style="color:var(--tp)">Confiança</strong> — tolerância zero para erros</li>
+          <li><strong style="color:var(--tp)">Relação humana</strong> — pagam premium pelo gerente</li>
+          <li><strong style="color:var(--tp)">Sofisticação</strong> — AI precisa estar no mesmo nível</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-icon">⚠️</div>
+        <div class="card-title">O Que Temem</div>
+        <ul class="check-list fear-list">
+          <li>Perda de privacidade e controle dos dados</li>
+          <li>Despersonalização do atendimento</li>
+          <li>Erro de AI causando perda financeira</li>
+          <li>Complexidade desnecessária</li>
+          <li>Exposição — HNWs são alvos</li>
+        </ul>
+      </div>
+    </div>
+    <div class="pattern-box" style="margin-top:48px;border-color:var(--gold);background:rgba(197,165,90,.03)">
+      <h3>🧠 Insight-Chave</h3>
+      <p style="font-size:.95rem;line-height:1.8">O cliente HNW quer sentir que tem acesso ao <strong style="color:var(--tp)">melhor time do banco</strong>, disponível quando precisar. A AI é o motor por trás — o gerente é a interface. O gerente munido de AI vira um <strong style="color:var(--gold)">super-gerente</strong>.</p>
+      <div style="margin-top:16px;display:flex;gap:24px;flex-wrap:wrap">
+        <span style="font-family:var(--fm);font-size:.7rem;color:var(--accent)">McKinsey 2024: 62% querem AI para eficiência</span>
+        <span style="font-family:var(--fm);font-size:.7rem;color:var(--red)">Só 20% aceitam AI client-facing</span>
+        <span style="font-family:var(--fm);font-size:.7rem;color:var(--green)">EY 2025: Monitoramento proativo = use case #1</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MODULE 4: PSICOLOGIA INSTITUCIONAL -->
+<section id="institucional" class="module-section">
+  <div class="container">
+    <div class="sec-header">
+      <div class="sec-eyebrow">Módulo 04</div>
+      <h2 class="sec-title">Psicologia Institucional</h2>
+      <p class="sec-sub">Resistências internas esperadas e como superá-las. Cada barreira tem uma solução específica.</p>
+    </div>
+    <div class="resist-grid">
+      <div class="resist-card">
+        <div class="resist-num">01</div>
+        <div class="resist-title">"AI vai substituir gerentes?"</div>
+        <div class="resist-desc">O maior medo interno. Se gerentes perceberem AI como ameaça, vão sabotar a adoção silenciosamente.</div>
+        <div class="resist-fix">Fix: Posicionar AI como superpoder do gerente. Métricas incluem "tempo ganho pra focar no cliente". Gerente é o herói, não a AI.</div>
+      </div>
+      <div class="resist-card">
+        <div class="resist-num">02</div>
+        <div class="resist-title">Compliance e Jurídico</div>
+        <div class="resist-desc">CVM proíbe recomendação automatizada sem suitability. Bacen tem agenda 2025-2026 que inclui AI. LGPD: dados financeiros são sensíveis.</div>
+        <div class="resist-fix">Fix: AI nunca "recomenda" — prepara análises que o gerente revisa e apresenta. Humano é sempre o último checkpoint.</div>
+      </div>
+      <div class="resist-card">
+        <div class="resist-num">03</div>
+        <div class="resist-title">Risco Reputacional</div>
+        <div class="resist-desc">"Banco Safra usando robô pra atender milionário" = manchete que ninguém quer. Uma alucinação que vire print = crise.</div>
+        <div class="resist-fix">Fix: AI invisível ao cliente na fase 1. O cliente nunca sabe que AI gerou o relatório — é "a equipe do seu gerente".</div>
+      </div>
+      <div class="resist-card">
+        <div class="resist-num">04</div>
+        <div class="resist-title">Cultura Conservadora</div>
+        <div class="resist-desc">O Safra não é fintech. Mudanças levam tempo. "Sempre fizemos assim e funciona" — inércia institucional forte.</div>
+        <div class="resist-fix">Fix: Pilotos pequenos com resultados rápidos. Não pedir pra transformar — pedir pra testar com 10 gerentes por 30 dias.</div>
+      </div>
+      <div class="resist-card">
+        <div class="resist-num">05</div>
+        <div class="resist-title">Sistemas Legados</div>
+        <div class="resist-desc">Core banking antigo, dados siloados entre departamentos. Integrar AI com CRM e portfolio management existentes é complexo.</div>
+        <div class="resist-fix">Fix: Começar com camada read-only. AI consulta dados mas não altera sistemas. Integração profunda vem depois.</div>
+      </div>
+      <div class="resist-card">
+        <div class="resist-num">06</div>
+        <div class="resist-title">Vazamento de Dados</div>
+        <div class="resist-desc">Dados de patrimônio HNW são o ativo mais sensível. Enviar para APIs externas = risco regulatório e de imagem.</div>
+        <div class="resist-fix">Fix: Modelos on-premise ou API com data residency. Jamais dados de clientes em APIs públicas.</div>
+      </div>
+    </div>
+    <div class="pattern-box" style="margin-top:48px;border-color:var(--green);background:rgba(16,185,129,.03)">
+      <h3>✅ O Que Facilita</h3>
+      <ul class="check-list">
+        <li>Estrutura familiar = decisão rápida se o board comprar</li>
+        <li>Banco médio = mais ágil que Itaú/BB, mais robusto que fintechs</li>
+        <li>Já emite COEs com Morgan Stanley = conexão com quem lidera AI em WM</li>
+        <li>Competição com BTG pressiona inovação</li>
+        <li>Pedro na diretoria de tech = sponsor interno forte</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- MODULE 5: CASOS DE USO -->
+<section id="casos" class="module-section">
+  <div class="container">
+    <div class="sec-header">
+      <div class="sec-eyebrow">Módulo 05</div>
+      <h2 class="sec-title">Casos de Uso Prioritários</h2>
+      <p class="sec-sub">De quick wins em 30 dias a transformação em 18 meses. Priorizados por impacto × esforço.</p>
+    </div>
+
+    <div class="tier tier-green">
+      <div class="tier-title">🟢 Quick Wins</div>
+      <div class="tier-sub">0–90 dias · Baixo risco, alto impacto</div>
+      <div class="use-case">
+        <div class="use-case-name">1. Assistente do Gerente (Knowledge Base)</div>
+        <div class="use-case-desc">Gerente pergunta em linguagem natural e recebe resposta em segundos. Acessa relatórios, fundos, regulamentações.</div>
+        <div class="use-case-ref">Ref: Morgan Stanley AIMS — 98% adoção · Impacto: ~2h/dia por gerente</div>
+      </div>
+      <div class="use-case">
+        <div class="use-case-name">2. Resumo Automático de Reunião</div>
+        <div class="use-case-desc">AI transcreve call, gera resumo executivo, action items e follow-ups. Gerente revisa e salva no CRM.</div>
+        <div class="use-case-ref">Ref: Morgan Stanley Debrief · Impacto: elimina trabalho administrativo pós-reunião</div>
+      </div>
+      <div class="use-case">
+        <div class="use-case-name">3. Análise de Produto Sob Demanda</div>
+        <div class="use-case-desc">Novo COE ou fundo chega → AI gera automaticamente: resumo, riscos, cenários, comparativo com CDI.</div>
+        <div class="use-case-ref">Impacto: democratiza conhecimento técnico entre gerentes</div>
+      </div>
+    </div>
+
+    <div class="tier tier-gold">
+      <div class="tier-title">🟡 Médio Prazo</div>
+      <div class="tier-sub">3–6 meses · Impacto transformador</div>
+      <div class="use-case">
+        <div class="use-case-name">4. Alertas Proativos de Portfólio</div>
+        <div class="use-case-desc">AI monitora carteiras 24/7 e alerta: "Cliente tem 40% em pré com vencimento em março e curva de juros mudou".</div>
+        <div class="use-case-ref">Ref: EY Survey 2025 — use case mais aceito por HNW</div>
+      </div>
+      <div class="use-case">
+        <div class="use-case-name">5. Preparação Automática de Reunião</div>
+        <div class="use-case-desc">Antes de cada call: performance da carteira, eventos relevantes, datas importantes, mudanças regulatórias.</div>
+        <div class="use-case-ref">Impacto: reunião mais produtiva + cliente se sente VIP</div>
+      </div>
+      <div class="use-case">
+        <div class="use-case-name">6. Onboarding Inteligente</div>
+        <div class="use-case-desc">Suitability AI-assisted: conversa guiada ao invés de formulário burocrático. Identifica nuances do perfil.</div>
+        <div class="use-case-ref">Impacto: experiência premium desde o primeiro contato</div>
+      </div>
+    </div>
+
+    <div class="tier tier-red">
+      <div class="tier-title">🔴 Transformacional</div>
+      <div class="tier-sub">6–18 meses · Diferencial competitivo</div>
+      <div class="use-case">
+        <div class="use-case-name">7. Safra Intelligence (AI para o Cliente)</div>
+        <div class="use-case-desc">Assistente AI personalizado: consulta carteira, análises, simulações — tudo com guardrails de compliance. Opt-in.</div>
+        <div class="use-case-ref">Nenhum banco brasileiro fez isso ainda · Disponibilidade 24/7</div>
+      </div>
+      <div class="use-case">
+        <div class="use-case-name">8. AI Agêntica</div>
+        <div class="use-case-desc">Agentes autônomos monitorando: mercado, carteira, life events, tributação. Agem proativamente preparando recomendações.</div>
+        <div class="use-case-ref">Ref: UBS e JP Morgan explorando em 2026</div>
+      </div>
+      <div class="use-case">
+        <div class="use-case-name">9. Family Office AI</div>
+        <div class="use-case-desc">Visão integrada de toda família: holding, investimentos, imóveis, participações, planejamento sucessório.</div>
+        <div class="use-case-ref">Impacto: lock-in brutal — cliente nunca sai</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MODULE 6: ARQUITETURA -->
+<section id="arquitetura" class="module-section">
+  <div class="container">
+    <div class="sec-header">
+      <div class="sec-eyebrow">Módulo 06</div>
+      <h2 class="sec-title">Arquitetura Técnica</h2>
+      <p class="sec-sub">Stack multi-modelo, model-agnostic, com data sovereignty e audit-first. Cada camada independente e substituível.</p>
+    </div>
+    <div class="arch-stack">
+      <div class="arch-layer l-app">
+        <div class="arch-layer-title">👤 Camada de Aplicação</div>
+        <div class="arch-layer-desc">Dashboard Web · Chat AI · App Móvel · Portal do Cliente (Fase 3)</div>
+      </div>
+      <div class="arch-arrow">▼</div>
+      <div class="arch-layer l-sec">
+        <div class="arch-layer-title">🔐 Gateway de Segurança</div>
+        <div class="arch-layer-desc">Auth · Rate Limit · Content Filter · Audit Log · PII Filtering</div>
+      </div>
+      <div class="arch-arrow">▼</div>
+      <div class="arch-layer l-ai">
+        <div class="arch-layer-title">🧠 Camada de Inteligência</div>
+        <div class="arch-layer-desc">GPT-4 · Claude · Gemini · Llama On-Premise · Router por tarefa</div>
+      </div>
+      <div class="arch-arrow">▼</div>
+      <div class="arch-layer l-know">
+        <div class="arch-layer-title">📚 Knowledge Layer (RAG)</div>
+        <div class="arch-layer-desc">Research · Prospectos · COEs · Regulação · Reuniões · Vector DB + Busca Semântica</div>
+      </div>
+      <div class="arch-arrow">▼</div>
+      <div class="arch-layer l-data">
+        <div class="arch-layer-title">💾 Data Layer</div>
+        <div class="arch-layer-desc">Core Banking · CRM · Carteiras · Market Data · Read-Only · Segregado · Encrypted</div>
+      </div>
+      <div class="arch-arrow">▼</div>
+      <div class="arch-layer l-gov">
+        <div class="arch-layer-title">📋 Governance & Compliance</div>
+        <div class="arch-layer-desc">Audit Trail · LGPD · Bacen/CVM · Suitability · Risk Classification · Human Review Gate</div>
+      </div>
+    </div>
+    <div class="cards-grid" style="margin-top:48px">
+      <div class="card">
+        <div class="card-icon">🔒</div>
+        <div class="card-title">Segurança</div>
+        <div class="card-body">Zero trust architecture. Encryption at rest + in transit. Private cloud para dados sensíveis. SOC 2 Type II. Pen testing antes de cada fase.</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">🚀</div>
+        <div class="card-title">Deploy</div>
+        <div class="card-body">Kubernetes (escalabilidade). CI/CD com gates de segurança. Blue/green deployment (rollback instantâneo). Monitoramento 24/7.</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">🧩</div>
+        <div class="card-title">Multi-Modelo</div>
+        <div class="card-body">Abordagem Goldman Sachs: router que escolhe o melhor modelo por tarefa. Reasoning → GPT-4. Documentos → Claude. Pesquisa → Gemini. Sensível → Llama on-premise.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MODULE 7: ROADMAP -->
+<section id="roadmap" class="module-section">
+  <div class="container">
+    <div class="sec-header">
+      <div class="sec-eyebrow">Módulo 07</div>
+      <h2 class="sec-title">Roadmap de Implementação</h2>
+      <p class="sec-sub">De proof of value a AI como DNA do banco. Cada fase com KPIs claros e entregáveis mensuráveis.</p>
+    </div>
+    <div class="timeline">
+      <div class="tl-item">
+        <div class="tl-phase">Fase 1 · Mês 1–3</div>
+        <div class="tl-title">Proof of Value</div>
+        <div class="tl-body">10-15 gerentes top performers como pilotos. Knowledge Assistant + Resumo de Reunião + Análise de Produto. Ambiente sandbox.</div>
+        <div class="tl-kpi">KPI: >80% adoção diária · NPS >8 · Zero incidentes</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-phase">Fase 2 · Mês 4–8</div>
+        <div class="tl-title">Scale Internal</div>
+        <div class="tl-body">Rollout para todos os gerentes private banking. Alertas proativos + Prep de reunião + Onboarding inteligente. Integração CRM.</div>
+        <div class="tl-kpi">KPI: >5h/semana economizadas · +15% cross-sell · +30% contatos proativos</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-phase">Fase 3 · Mês 9–14</div>
+        <div class="tl-title">Client-Facing</div>
+        <div class="tl-body">Lançar "Safra Intelligence" para top 50 clientes. Assistente AI personalizado. Opt-in voluntário. AI agêntica: monitoramento contínuo.</div>
+        <div class="tl-kpi">KPI: >40% adoção · AUM incremental · Zero incidentes compliance</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-phase">Fase 4 · Mês 15–24</div>
+        <div class="tl-title">Ecosystem</div>
+        <div class="tl-body">Family Office AI. Open Finance. AI em todas as áreas (corporate, crédito). Marketplace de insights cross-sell.</div>
+        <div class="tl-kpi">KPI: Revenue per client vs baseline · Posicionamento em rankings internacionais</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MODULE 8: CRM INTELLIGENCE -->
+<section id="crm" class="module-section">
+  <div class="container">
+    <div class="sec-header">
+      <div class="sec-eyebrow">Módulo 08</div>
+      <h2 class="sec-title">CRM Intelligence</h2>
+      <p class="sec-sub">Toda interação vira dado estruturado. Um raio-X em tempo real de toda a operação comercial private, sem ninguém preencher formulário.</p>
+    </div>
+    <div class="crm-grid">
+      <div class="crm-card">
+        <div class="crm-card-icon">📊</div>
+        <div class="crm-card-title">Sobre os Gerentes</div>
+        <div class="crm-card-body">Quem usa mais AI (e quem resiste). Perguntas sofisticadas vs. básicas. Tempo de resposta ao cliente. Correlação: uso de AI × vendas. Ranking com dados objetivos.</div>
+      </div>
+      <div class="crm-card">
+        <div class="crm-card-icon">❓</div>
+        <div class="crm-card-title">Sobre as Dúvidas</div>
+        <div class="crm-card-body">Top 20 perguntas mais frequentes. Padrões sazonais. Gaps na knowledge base. Dúvidas que indicam processo interno ruim — "se 30 gerentes perguntam a mesma coisa, o processo é confuso".</div>
+      </div>
+      <div class="crm-card">
+        <div class="crm-card-icon">🧠</div>
+        <div class="crm-card-title">Sobre Produtos</div>
+        <div class="crm-card-body">Quais geram mais dúvidas (mal explicados?). Quais os gerentes mais consultam antes de oferecer. Taxa de conversão: consulta → venda. Produtos ignorados → não estão sendo oferecidos.</div>
+      </div>
+      <div class="crm-card">
+        <div class="crm-card-icon">👤</div>
+        <div class="crm-card-title">Sobre Clientes</div>
+        <div class="crm-card-body">O que HNWs mais perguntam. Horários de maior interação. Temas com mais engajamento. Sinais de churn: cliente que parou de interagir.</div>
+      </div>
+    </div>
+    <div class="pattern-box" style="margin-top:48px;border-color:var(--gold);background:rgba(197,165,90,.03)">
+      <h3>💡 O Pulo do Gato</h3>
+      <p style="font-size:.95rem;line-height:1.8">Nenhum CRM tradicional (Salesforce, Hubspot) captura o <strong style="color:var(--tp)">conteúdo qualitativo</strong> das conversas. Eles registram "ligou pro cliente às 14h". Aqui você teria: <em>"o gerente consultou sobre rebalanceamento com exposição a NTN-B porque o cliente demonstrou preocupação com inflação"</em>. É outro nível de inteligência operacional.</p>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <div class="footer-quote">"AI empowers. <em>Human decides.</em>"</div>
+    <div class="footer-sub">Safra AI — Eval Completo · Março 2026</div>
+    <p class="footer-credit">Desenvolvido por <a href="https://cb.deco.ooo" target="_blank">Cultura Builder</a> · Powered by 🐺</p>
+  </div>
+</footer>
+
+<!-- D3.js Neural Mindmap -->
+<script>
+(function(){
+  const nodes = [
+    {id:'center',label:'Safra AI\nPlatform',group:'center',r:40,desc:'Plataforma de Inteligência Artificial para Private Banking do Banco Safra'},
+    // Module nodes
+    {id:'m1',label:'Análise do\nBanco',group:'strategy',r:28,desc:'8º maior banco do Brasil. US$51B em ativos. DNA conservador, controle familiar. Alta retenção de clientes HNW.'},
+    {id:'m2',label:'Benchmark\nGlobal',group:'tech',r:28,desc:'Morgan Stanley, JP Morgan, Goldman, UBS, Deutsche Bank, BTG. Padrão: todos começaram advisor-facing.'},
+    {id:'m3',label:'Psicologia\nHNW',group:'people',r:28,desc:'72% preferem personalização. Valorizam: exclusividade, tempo, confiança. Temem: despersonalização, erros, exposição.'},
+    {id:'m4',label:'Psicologia\nInstitucional',group:'people',r:28,desc:'6 resistências: substituição de gerentes, compliance, reputação, cultura, legados, dados. Cada uma com fix específico.'},
+    {id:'m5',label:'Casos de\nUso',group:'strategy',r:28,desc:'9 use cases em 3 tiers: Quick Wins (0-90d), Médio Prazo (3-6m), Transformacional (6-18m).'},
+    {id:'m6',label:'Arquitetura\nTécnica',group:'tech',r:28,desc:'Stack multi-modelo, RAG interno, data sovereignty. 5 camadas: App, Security, AI, Knowledge, Data, Governance.'},
+    {id:'m7',label:'Roadmap',group:'strategy',r:28,desc:'4 fases em 24 meses. De Proof of Value (10 gerentes) a Ecosystem (AI como DNA do banco).'},
+    {id:'m8',label:'CRM\nIntelligence',group:'tech',r:28,desc:'Toda interação vira dado. Analytics em tempo real sobre gerentes, dúvidas, produtos e clientes.'},
+    // Sub-nodes
+    {id:'s1a',label:'R$10M+\nEntry',group:'strategy',r:16,desc:'Ticket mínimo para Private Banking Safra'},
+    {id:'s1b',label:'Família\nSafra',group:'people',r:16,desc:'Controle familiar = decisões rápidas'},
+    {id:'s1c',label:'vs BTG\nUS$335B',group:'strategy',r:16,desc:'Principal concorrente em AUM'},
+    {id:'s2a',label:'Morgan\nStanley',group:'tech',r:16,desc:'98% adoção, 16K advisors, GPT-4'},
+    {id:'s2b',label:'JP Morgan\nUS$2B/ano',group:'tech',r:16,desc:'200K+ funcionários usando AI diariamente'},
+    {id:'s2c',label:'Goldman\nMulti-Model',group:'tech',r:16,desc:'GPT-4o + Claude + Gemini'},
+    {id:'s2d',label:'UBS\nEliza',group:'tech',r:16,desc:'90% dos funcionários onboarded'},
+    {id:'s3a',label:'72%\nPersonalização',group:'people',r:16,desc:'HNWIs que preferem serviços personalizados'},
+    {id:'s3b',label:'Confiança\nZero Erro',group:'people',r:16,desc:'Tolerância zero para falhas de AI'},
+    {id:'s3c',label:'Gerente =\nInterface',group:'people',r:16,desc:'AI é motor, gerente é a face'},
+    {id:'s5a',label:'Knowledge\nAssistant',group:'strategy',r:16,desc:'Quick win: assistente de conhecimento para gerentes'},
+    {id:'s5b',label:'Safra\nIntelligence',group:'strategy',r:16,desc:'Client-facing AI (Fase 3)'},
+    {id:'s5c',label:'Family\nOffice AI',group:'strategy',r:16,desc:'Visão integrada de toda a família'},
+    {id:'s6a',label:'RAG\nInterno',group:'tech',r:16,desc:'Vector DB + Busca Semântica nos docs do banco'},
+    {id:'s6b',label:'On-Premise\nLlama',group:'tech',r:16,desc:'Modelo local para dados ultra-sensíveis'},
+    {id:'s6c',label:'Zero\nTrust',group:'tech',r:16,desc:'Encryption + SOC2 + Pen Testing'},
+    {id:'s7a',label:'Fase 1\nPiloto',group:'strategy',r:16,desc:'10-15 gerentes, mês 1-3'},
+    {id:'s7b',label:'Fase 3\nCliente',group:'strategy',r:16,desc:'Top 50 clientes, mês 9-14'},
+    {id:'s8a',label:'Dashboard\nRealtime',group:'tech',r:16,desc:'Visão em tempo real da operação'},
+    {id:'s8b',label:'Gap\nDetection',group:'tech',r:16,desc:'Processos ruins detectados automaticamente'},
+  ];
+  const links = [
+    // Center to modules
+    {source:'center',target:'m1'},{source:'center',target:'m2'},{source:'center',target:'m3'},
+    {source:'center',target:'m4'},{source:'center',target:'m5'},{source:'center',target:'m6'},
+    {source:'center',target:'m7'},{source:'center',target:'m8'},
+    // Module interconnections
+    {source:'m1',target:'m2'},{source:'m2',target:'m6'},{source:'m3',target:'m4'},
+    {source:'m5',target:'m7'},{source:'m6',target:'m8'},{source:'m3',target:'m5'},
+    {source:'m4',target:'m7'},{source:'m1',target:'m3'},
+    // Sub-nodes
+    {source:'m1',target:'s1a'},{source:'m1',target:'s1b'},{source:'m1',target:'s1c'},
+    {source:'m2',target:'s2a'},{source:'m2',target:'s2b'},{source:'m2',target:'s2c'},{source:'m2',target:'s2d'},
+    {source:'m3',target:'s3a'},{source:'m3',target:'s3b'},{source:'m3',target:'s3c'},
+    {source:'m5',target:'s5a'},{source:'m5',target:'s5b'},{source:'m5',target:'s5c'},
+    {source:'m6',target:'s6a'},{source:'m6',target:'s6b'},{source:'m6',target:'s6c'},
+    {source:'m7',target:'s7a'},{source:'m7',target:'s7b'},
+    {source:'m8',target:'s8a'},{source:'m8',target:'s8b'},
+  ];
+
+  const colors = {center:'#c5a55a',tech:'#3b82f6',strategy:'#10b981',people:'#f59e0b'};
+  const container = document.getElementById('mindmap-canvas');
+  const tooltip = document.getElementById('mindmap-tooltip');
+  const w = container.clientWidth, h = container.clientHeight;
+
+  const svg = d3.select('#mindmap-canvas').append('svg')
+    .attr('width',w).attr('height',h)
+    .attr('viewBox',`0 0 ${w} ${h}`);
+
+  // Defs for glow
+  const defs = svg.append('defs');
+  const filter = defs.append('filter').attr('id','glow');
+  filter.append('feGaussianBlur').attr('stdDeviation','4').attr('result','blur');
+  const merge = filter.append('feMerge');
+  merge.append('feMergeNode').attr('in','blur');
+  merge.append('feMergeNode').attr('in','SourceGraphic');
+
+  const simulation = d3.forceSimulation(nodes)
+    .force('link',d3.forceLink(links).id(d=>d.id).distance(d=>{
+      if(d.source.id==='center'||d.target.id==='center') return 180;
+      if(d.source.id?.startsWith('s')||d.target.id?.startsWith('s')) return 80;
+      return 120;
+    }))
+    .force('charge',d3.forceManyBody().strength(d=>d.id==='center'?-600:d.r>20?-300:-100))
+    .force('center',d3.forceCenter(w/2,h/2))
+    .force('collision',d3.forceCollide().radius(d=>d.r+10));
+
+  // Links
+  const link = svg.append('g').selectAll('line').data(links).join('line')
+    .attr('stroke','rgba(255,255,255,.08)').attr('stroke-width',1.5);
+
+  // Animated particles on links
+  const particles = svg.append('g');
+  function animateParticles(){
+    links.forEach((l,i)=>{
+      if(Math.random()>0.02) return;
+      const p = particles.append('circle').attr('r',2).attr('fill',colors[l.source.group||'tech']).attr('opacity',.7);
+      const src = l.source, tgt = l.target;
+      p.attr('cx',src.x).attr('cy',src.y)
+        .transition().duration(2000).ease(d3.easeLinear)
+        .attr('cx',tgt.x).attr('cy',tgt.y).attr('opacity',0).remove();
+    });
+    requestAnimationFrame(animateParticles);
+  }
+  animateParticles();
+
+  // Nodes
+  const node = svg.append('g').selectAll('g').data(nodes).join('g')
+    .attr('cursor','grab')
+    .call(d3.drag().on('start',dragStart).on('drag',dragged).on('end',dragEnd));
+
+  // Circle
+  node.append('circle')
+    .attr('r',d=>d.r)
+    .attr('fill',d=>d.id==='center'?'rgba(197,165,90,.15)':d.r>20?'rgba(255,255,255,.04)':'rgba(255,255,255,.02)')
+    .attr('stroke',d=>colors[d.group])
+    .attr('stroke-width',d=>d.id==='center'?2.5:d.r>20?1.5:1)
+    .attr('filter',d=>d.id==='center'?'url(#glow)':null);
+
+  // Labels
+  node.each(function(d){
+    const g = d3.select(this);
+    const lines = d.label.split('\n');
+    const fontSize = d.r>30?'.65rem':d.r>20?'.55rem':'.45rem';
+    lines.forEach((line,i)=>{
+      g.append('text')
+        .attr('text-anchor','middle')
+        .attr('dy',`${(i-lines.length/2+.5)*1.2}em`)
+        .attr('fill',d.id==='center'?'#c5a55a':'#8aa4c8')
+        .attr('font-family',"'IBM Plex Mono',monospace")
+        .attr('font-size',fontSize)
+        .attr('font-weight',d.r>20?'700':'400')
+        .attr('pointer-events','none')
+        .text(line);
+    });
+  });
+
+  // Center pulse
+  const centerNode = node.filter(d=>d.id==='center');
+  centerNode.append('circle')
+    .attr('r',40).attr('fill','none').attr('stroke','#c5a55a').attr('stroke-width',.5).attr('opacity',.3)
+    .append('animate').attr('attributeName','r').attr('from','40').attr('to','65').attr('dur','3s').attr('repeatCount','indefinite');
+  centerNode.select('animate').clone().attr('attributeName','opacity').attr('from','.3').attr('to','0');
+
+  // Hover / Click
+  node.on('mouseover',function(e,d){
+    d3.select(this).select('circle').attr('stroke-width',d.r>20?3:2);
+    link.attr('stroke',l=>(l.source.id===d.id||l.target.id===d.id)?colors[d.group]:'rgba(255,255,255,.04)')
+      .attr('stroke-width',l=>(l.source.id===d.id||l.target.id===d.id)?2.5:1);
+    tooltip.innerHTML=`<h4>${d.label.replace('\n',' ')}</h4><p>${d.desc}</p>`;
+    tooltip.style.opacity=1;
+    const rect = container.getBoundingClientRect();
+    tooltip.style.left=(e.clientX-rect.left+16)+'px';
+    tooltip.style.top=(e.clientY-rect.top-16)+'px';
+  }).on('mouseout',function(e,d){
+    d3.select(this).select('circle').attr('stroke-width',d.id==='center'?2.5:d.r>20?1.5:1);
+    link.attr('stroke','rgba(255,255,255,.08)').attr('stroke-width',1.5);
+    tooltip.style.opacity=0;
+  });
+
+  simulation.on('tick',()=>{
+    link.attr('x1',d=>d.source.x).attr('y1',d=>d.source.y).attr('x2',d=>d.target.x).attr('y2',d=>d.target.y);
+    node.attr('transform',d=>`translate(${d.x},${d.y})`);
+  });
+
+  function dragStart(e,d){d3.select(this).attr('cursor','grabbing');if(!e.active) simulation.alphaTarget(.1).restart();d.fx=d.x;d.fy=d.y}
+  function dragged(e,d){d.fx=e.x;d.fy=e.y}
+  function dragEnd(e,d){d3.select(this).attr('cursor','grab');if(!e.active) simulation.alphaTarget(0);d.fx=null;d.fy=null}
+
+  // Resize
+  window.addEventListener('resize',()=>{
+    const nw=container.clientWidth,nh=container.clientHeight;
+    svg.attr('width',nw).attr('height',nh).attr('viewBox',`0 0 ${nw} ${nh}`);
+    simulation.force('center',d3.forceCenter(nw/2,nh/2)).alpha(.3).restart();
+  });
+})();
+
+// Stat counter animation
+const observer = new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      e.target.querySelectorAll('.h-stat-num').forEach(el=>{
+        const target=+el.dataset.target;
+        const prefix=el.dataset.prefix||'';
+        const suffix=el.dataset.suffix||'';
+        let current=0;
+        const step=target/40;
+        const timer=setInterval(()=>{
+          current+=step;
+          if(current>=target){current=target;clearInterval(timer)}
+          el.textContent=prefix+Math.round(current)+suffix;
+        },30);
+      });
+      observer.unobserve(e.target);
+    }
+  });
+},{threshold:.5});
+document.querySelectorAll('.hero-stats').forEach(el=>observer.observe(el));
+
+// Smooth scroll for nav
+document.querySelectorAll('.nav-links a').forEach(a=>{
+  a.addEventListener('click',e=>{
+    e.preventDefault();
+    document.querySelector(a.getAttribute('href')).scrollIntoView({behavior:'smooth'});
+  });
+});
+</script>
+
+</body>
+</html>
