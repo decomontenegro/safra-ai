@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Safra AI — Executive Pitch</title>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --gold: #c9a84c;
+    --gold-light: #e8c96a;
+    --bg: #070c1a;
+    --bg2: #0d1528;
+    --bg3: #111d35;
+    --text: #f0f4ff;
+    --muted: #7a8fb0;
+    --border: rgba(201,168,76,0.15);
+  }
+
+  html {
+    scroll-snap-type: y mandatory;
+    overflow-y: scroll;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+  }
+
+  /* Gate */
+  #gate {
+    position: fixed; inset: 0; z-index: 9999;
+    background: var(--bg);
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column; gap: 20px;
+  }
+  #gate.hidden { display: none; }
+  .gate-logo { font-size: 11px; font-weight: 700; letter-spacing: 4px; color: var(--gold); text-transform: uppercase; margin-bottom: 4px; }
+  .gate-title { font-size: 20px; font-weight: 700; color: var(--text); }
+  .gate-sub { font-size: 13px; color: var(--muted); letter-spacing: 0.5px; }
+  .gate-input {
+    padding: 14px 20px; border: 1px solid var(--border);
+    background: rgba(255,255,255,0.03); color: var(--text);
+    font-size: 15px; font-family: inherit; letter-spacing: 4px;
+    outline: none; width: 240px; text-align: center;
+    border-radius: 2px; transition: border 0.2s;
+  }
+  .gate-input:focus { border-color: var(--gold); }
+  .gate-btn {
+    padding: 13px 36px; background: var(--gold); color: #070c1a;
+    font-size: 11px; font-weight: 800; letter-spacing: 3px;
+    text-transform: uppercase; border: none; cursor: pointer;
+    font-family: inherit; border-radius: 2px; transition: opacity 0.2s;
+  }
+  .gate-btn:hover { opacity: 0.85; }
+  .gate-error { font-size: 12px; color: #e05555; min-height: 16px; }
+
+  /* Progress */
+  #progress-bar {
+    position: fixed; top: 0; left: 0; height: 2px;
+    background: linear-gradient(90deg, var(--gold), var(--gold-light));
+    z-index: 1000; transition: width 0.4s ease; width: 0%;
+  }
+
+  /* Nav dots */
+  .nav-dots {
+    position: fixed; right: 20px; top: 50%;
+    transform: translateY(-50%);
+    display: flex; flex-direction: column; gap: 8px; z-index: 1000;
+  }
+  .nav-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: rgba(201,168,76,0.3); cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  .nav-dot.active { background: var(--gold); transform: scale(1.5); }
+
+  /* Slide counter */
+  .slide-counter {
+    position: fixed; bottom: 20px; right: 36px;
+    font-size: 10px; font-weight: 500; color: var(--muted);
+    letter-spacing: 2px; z-index: 1000;
+  }
+
+  /* Slides */
+  .slide {
+    min-height: 100vh;
+    scroll-snap-align: start;
+    display: flex; flex-direction: column; justify-content: center;
+    padding: 72px 80px 72px;
+    position: relative; overflow: hidden;
+  }
+  .slide::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 80% 20%, rgba(201,168,76,0.06) 0%, transparent 55%);
+    pointer-events: none;
+  }
+
+  /* Slide header */
+  .slide-header {
+    position: absolute; top: 28px; left: 80px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .logo-text { font-size: 11px; font-weight: 700; letter-spacing: 3px; color: var(--gold); text-transform: uppercase; }
+  .logo-sep { width: 1px; height: 14px; background: var(--gold); opacity: 0.35; }
+  .logo-sub { font-size: 10px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; }
+  .slide-num { position: absolute; top: 32px; right: 80px; font-size: 10px; letter-spacing: 3px; color: var(--muted); }
+
+  .gold-line { width: 40px; height: 2px; background: linear-gradient(90deg, var(--gold), transparent); margin-bottom: 20px; }
+
+  /* ── SLIDE 1 ── */
+  .s1-eyebrow { font-size: 10px; font-weight: 700; letter-spacing: 4px; color: var(--gold); text-transform: uppercase; margin-bottom: 18px; }
+  .s1-title { font-size: 50px; font-weight: 800; line-height: 1.1; color: var(--text); margin-bottom: 14px; max-width: 720px; }
+  .s1-title span { color: var(--gold); }
+  .s1-sub { font-size: 17px; font-weight: 300; color: var(--muted); margin-bottom: 44px; }
+  .s1-body { font-size: 16px; line-height: 1.85; color: #a8bbd8; max-width: 660px; margin-bottom: 40px; }
+  .s1-stats { display: flex; gap: 48px; margin-bottom: 40px; }
+  .s1-stat-val { font-size: 32px; font-weight: 800; color: var(--gold); line-height: 1; margin-bottom: 6px; }
+  .s1-stat-label { font-size: 11px; color: var(--muted); letter-spacing: 1px; }
+  .s1-quote {
+    display: inline-flex; align-items: flex-start; gap: 16px;
+    padding: 18px 24px; border-left: 3px solid var(--gold);
+    background: rgba(201,168,76,0.06); max-width: 640px;
+    font-size: 15px; font-style: italic; color: var(--gold-light); line-height: 1.6;
+  }
+
+  /* ── SLIDE 2 ── */
+  .s2-title { font-size: 40px; font-weight: 800; color: var(--text); margin-bottom: 10px; max-width: 760px; }
+  .s2-title span { color: var(--gold); }
+  .s2-sub { font-size: 15px; color: var(--muted); margin-bottom: 44px; max-width: 660px; line-height: 1.6; }
+  .s2-cols { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-bottom: 36px; }
+  .s2-col {
+    background: rgba(255,255,255,0.02); border: 1px solid var(--border);
+    border-top: 2px solid var(--gold); padding: 26px 22px; border-radius: 2px;
+  }
+  .s2-col-icon { color: var(--gold); margin-bottom: 14px; }
+  .s2-col-label { font-size: 9px; font-weight: 700; letter-spacing: 3px; color: var(--gold); text-transform: uppercase; margin-bottom: 10px; }
+  .s2-col-title { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 10px; }
+  .s2-col-body { font-size: 13px; line-height: 1.7; color: var(--muted); }
+  .s2-impact { font-size: 14px; font-style: italic; color: var(--gold-light); border-left: 2px solid var(--gold); padding-left: 18px; line-height: 1.7; }
+
+  /* ── SLIDE 3 ── */
+  .s3-title { font-size: 40px; font-weight: 800; color: var(--text); margin-bottom: 10px; }
+  .s3-title span { color: var(--gold); }
+  .s3-sub { font-size: 15px; color: var(--muted); margin-bottom: 40px; line-height: 1.6; }
+  .s3-bi { display: grid; grid-template-columns: 1fr 80px 1fr; gap: 20px; align-items: center; margin-bottom: 32px; }
+  .s3-panel { background: rgba(255,255,255,0.02); border: 1px solid var(--border); padding: 26px 24px; border-radius: 2px; }
+  .s3-panel-title { font-size: 9px; font-weight: 700; letter-spacing: 3px; color: var(--gold); text-transform: uppercase; margin-bottom: 18px; }
+  .s3-item { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 13px; font-size: 13px; color: #a0b4cc; line-height: 1.5; }
+  .s3-item svg { color: var(--gold); flex-shrink: 0; margin-top: 1px; }
+  .s3-arrow { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .s3-arrow-line { width: 1px; height: 50px; background: linear-gradient(180deg, transparent, var(--gold), transparent); }
+  .s3-arrow-lbl { font-size: 8px; font-weight: 700; letter-spacing: 2px; color: var(--gold); text-transform: uppercase; writing-mode: vertical-lr; }
+  .s3-closing { font-size: 15px; font-style: italic; color: var(--gold-light); text-align: center; padding: 18px 24px; border: 1px solid rgba(201,168,76,0.18); background: rgba(201,168,76,0.04); }
+  .s3-item-strong { color: #c8d8f0; font-weight: 600; }
+
+  /* ── SLIDE 4 ── */
+  .s4-title { font-size: 38px; font-weight: 800; color: var(--text); margin-bottom: 10px; }
+  .s4-title span { color: var(--gold); }
+  .s4-sub { font-size: 14px; color: var(--muted); margin-bottom: 36px; line-height: 1.6; max-width: 700px; }
+  .s4-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-bottom: 24px; }
+  .s4-card { background: rgba(255,255,255,0.02); border: 1px solid var(--border); padding: 20px 18px; border-radius: 2px; }
+  .s4-card-icon { color: var(--gold); margin-bottom: 10px; }
+  .s4-card-title { font-size: 9px; font-weight: 700; letter-spacing: 2px; color: var(--gold); text-transform: uppercase; margin-bottom: 9px; }
+  .s4-card-body { font-size: 12px; line-height: 1.7; color: var(--muted); }
+  .s4-card-body strong { color: #b0c4de; font-weight: 600; }
+  .s4-footer { font-size: 13px; font-style: italic; color: var(--gold-light); border-left: 2px solid var(--gold); padding-left: 18px; }
+
+  /* ── SLIDE 5 ── */
+  .s5-title { font-size: 40px; font-weight: 800; color: var(--text); margin-bottom: 10px; }
+  .s5-title span { color: var(--gold); }
+  .s5-sub { font-size: 15px; color: var(--muted); margin-bottom: 44px; line-height: 1.6; }
+  .s5-cols { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; margin-bottom: 44px; }
+  .s5-block { border-top: 2px solid var(--gold); padding-top: 22px; }
+  .s5-block-num { font-size: 30px; font-weight: 800; color: rgba(201,168,76,0.2); line-height: 1; margin-bottom: 6px; }
+  .s5-block-title { font-size: 9px; font-weight: 700; letter-spacing: 3px; color: var(--gold); text-transform: uppercase; margin-bottom: 14px; }
+  .s5-item { display: flex; align-items: flex-start; gap: 9px; margin-bottom: 9px; font-size: 13px; color: #a0b4cc; line-height: 1.5; }
+  .s5-item svg { color: var(--gold); flex-shrink: 0; margin-top: 2px; }
+  .s5-closing { text-align: center; padding: 32px 40px; border: 1px solid rgba(201,168,76,0.2); background: rgba(201,168,76,0.04); }
+  .s5-closing-main { font-size: 20px; font-weight: 700; color: var(--text); line-height: 1.55; margin-bottom: 14px; }
+  .s5-closing-main span { color: var(--gold); }
+  .s5-closing-sub { font-size: 14px; font-weight: 600; color: var(--gold-light); letter-spacing: 1px; }
+
+  /* Print */
+  @media print {
+    html { scroll-snap-type: none; overflow: visible; }
+    .slide { page-break-after: always; min-height: 100vh; }
+    #progress-bar, .nav-dots, .slide-counter, #gate { display: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Gate -->
+<div id="gate">
+  <div class="gate-logo">Safra AI</div>
+  <div class="gate-title">Acesso Restrito</div>
+  <div class="gate-sub">Apresentação Executiva — Confidencial</div>
+  <input class="gate-input" id="gateInput" type="password" placeholder="Senha" autofocus />
+  <button class="gate-btn" onclick="checkGate()">Entrar</button>
+  <div class="gate-error" id="gateError"></div>
+</div>
+
+<div id="progress-bar"></div>
+<nav class="nav-dots" id="navDots"></nav>
+<div class="slide-counter" id="slideCounter">01 / 05</div>
+
+<!-- ══ SLIDE 1 — O DESAFIO ══ -->
+<section class="slide" id="slide1" style="background:var(--bg)">
+  <div class="slide-header">
+    <span class="logo-text">Safra AI</span>
+    <div class="logo-sep"></div>
+    <span class="logo-sub">Executive Pitch · 2025</span>
+  </div>
+  <div class="slide-num">01</div>
+
+  <div class="s1-eyebrow">Área Comercial · Produtos de Investimento</div>
+  <div class="gold-line"></div>
+  <h1 class="s1-title">Escala sem perder<br>a qualidade da <span>conversa.</span></h1>
+  <p class="s1-sub">O problema não é talento. É tempo e informação no momento certo.</p>
+
+  <div class="s1-stats">
+    <div>
+      <div class="s1-stat-val">R$10M+</div>
+      <div class="s1-stat-label">Ticket mínimo Private</div>
+    </div>
+    <div>
+      <div class="s1-stat-val">98%</div>
+      <div class="s1-stat-label">Adoção — Morgan Stanley AI</div>
+    </div>
+    <div>
+      <div class="s1-stat-val">US$2B</div>
+      <div class="s1-stat-label">Investimento anual JP Morgan em AI</div>
+    </div>
+  </div>
+
+  <p class="s1-body">
+    O Safra construiu um dos times de investimentos mais qualificados do mercado privado brasileiro. Clientes HNW exigem respostas rápidas, argumentos sólidos e orientação personalizada. Um executivo tem 30 minutos para uma reunião que exigiria 3 horas de preparação.<br><br>
+    Morgan Stanley, JP Morgan, Goldman Sachs e UBS já responderam. No Brasil, o BTG lidera. A janela de diferenciação existe — mas está se fechando.
+  </p>
+
+  <div class="s1-quote">
+    <i data-lucide="quote" style="width:18px;height:18px;flex-shrink:0;margin-top:2px"></i>
+    "A questão não é se AI chegará ao commercial banking. É quem vai definir o padrão — e quem vai seguir."
+  </div>
+</section>
+
+<!-- ══ SLIDE 2 — A SOLUÇÃO ══ -->
+<section class="slide" id="slide2" style="background:var(--bg2)">
+  <div class="slide-header">
+    <span class="logo-text">Safra AI</span>
+    <div class="logo-sep"></div>
+    <span class="logo-sub">Executive Pitch · 2025</span>
+  </div>
+  <div class="slide-num">02</div>
+
+  <div class="gold-line"></div>
+  <h2 class="s2-title"><span>Safra AI:</span> o copiloto de vendas<br>da área de investimentos.</h2>
+  <p class="s2-sub">Não é um chatbot. É uma infraestrutura cognitiva acoplada à base privada de conhecimento do banco — disponível para cada executivo, em tempo real. O gerente é o herói. A AI é o superpoder.</p>
+
+  <div class="s2-cols">
+    <div class="s2-col">
+      <div class="s2-col-icon"><i data-lucide="calendar-check" style="width:22px;height:22px"></i></div>
+      <div class="s2-col-label">Antes da Reunião</div>
+      <div class="s2-col-title">Briefing em minutos</div>
+      <div class="s2-col-body">Histórico completo do cliente, perfil de risco, produtos mais aderentes e oportunidades identificadas — antes de sentar à mesa.</div>
+    </div>
+    <div class="s2-col">
+      <div class="s2-col-icon"><i data-lucide="zap" style="width:22px;height:22px"></i></div>
+      <div class="s2-col-label">Durante a Venda</div>
+      <div class="s2-col-title">Inteligência em tempo real</div>
+      <div class="s2-col-body">Argumentos, comparativos, simulações e respostas a objeções — na palma da mão, no momento exato em que o cliente questiona.</div>
+    </div>
+    <div class="s2-col">
+      <div class="s2-col-icon"><i data-lucide="database" style="width:22px;height:22px"></i></div>
+      <div class="s2-col-label">Após o Atendimento</div>
+      <div class="s2-col-title">Registro automático</div>
+      <div class="s2-col-body">Cada conversa vira dado estruturado. Nenhuma informação se perde. Tudo auditável, rastreável e pronto para análise.</div>
+    </div>
+  </div>
+
+  <div class="s2-impact">
+    "A capacidade do melhor analista do banco. A velocidade de uma plataforma. A consistência de uma infraestrutura. Invisível ao cliente — indispensável ao gerente."
+  </div>
+</section>
+
+<!-- ══ SLIDE 3 — INTELIGÊNCIA BIDIRECIONAL ══ -->
+<section class="slide" id="slide3" style="background:var(--bg)">
+  <div class="slide-header">
+    <span class="logo-text">Safra AI</span>
+    <div class="logo-sep"></div>
+    <span class="logo-sub">Executive Pitch · 2025</span>
+  </div>
+  <div class="slide-num">03</div>
+
+  <div class="gold-line"></div>
+  <h2 class="s3-title">Cada conversa vira<br><span>vantagem competitiva.</span></h2>
+  <p class="s3-sub">O banco finalmente ouve o campo — de forma estruturada, contínua e escalável. Nenhum CRM tradicional captura isso.</p>
+
+  <div class="s3-bi">
+    <div class="s3-panel">
+      <div class="s3-panel-title">O que a AI capta</div>
+      <div class="s3-item"><i data-lucide="trending-down" style="width:14px;height:14px"></i><span>Objeções mais frequentes por produto — em tempo real</span></div>
+      <div class="s3-item"><i data-lucide="target" style="width:14px;height:14px"></i><span>Argumentos que mais convertem por perfil de cliente</span></div>
+      <div class="s3-item"><i data-lucide="alert-triangle" style="width:14px;height:14px"></i><span>Gaps de conhecimento do time antes de virarem problema</span></div>
+      <div class="s3-item"><i data-lucide="activity" style="width:14px;height:14px"></i><span>Comportamento real do mercado no campo</span></div>
+    </div>
+
+    <div class="s3-arrow">
+      <div class="s3-arrow-line"></div>
+      <div class="s3-arrow-lbl">Inteligência em Tempo Real</div>
+      <div class="s3-arrow-line"></div>
+    </div>
+
+    <div class="s3-panel">
+      <div class="s3-panel-title">O que o banco ganha</div>
+      <div class="s3-item"><i data-lucide="bar-chart-2" style="width:14px;height:14px"></i><span><span class="s3-item-strong">Diretoria:</span> visibilidade do campo sem depender de reunião semanal</span></div>
+      <div class="s3-item"><i data-lucide="package" style="width:14px;height:14px"></i><span><span class="s3-item-strong">Área de produtos:</span> termômetro em tempo real de cada lançamento</span></div>
+      <div class="s3-item"><i data-lucide="users" style="width:14px;height:14px"></i><span><span class="s3-item-strong">RH / Treinamento:</span> diagnóstico automático de lacunas</span></div>
+      <div class="s3-item"><i data-lucide="lightbulb" style="width:14px;height:14px"></i><span><span class="s3-item-strong">Gestão:</span> decisões baseadas em dado, não em percepção</span></div>
+    </div>
+  </div>
+
+  <div class="s3-closing">
+    "Nenhum CRM tradicional captura o conteúdo qualitativo das conversas. O Safra teria: 'o gerente consultou sobre rebalanceamento porque o cliente demonstrou preocupação com inflação.' Outro nível de inteligência operacional."
+  </div>
+</section>
+
+<!-- ══ SLIDE 4 — SEGURANÇA & GOVERNANÇA ══ -->
+<section class="slide" id="slide4" style="background:var(--bg2)">
+  <div class="slide-header">
+    <span class="logo-text">Safra AI</span>
+    <div class="logo-sep"></div>
+    <span class="logo-sub">Executive Pitch · 2025</span>
+  </div>
+  <div class="slide-num">04</div>
+
+  <div class="gold-line"></div>
+  <h2 class="s4-title">Arquitetura de segurança<br><span>de nível institucional.</span></h2>
+  <p class="s4-sub">Projetado para operar sob os padrões regulatórios do sistema financeiro brasileiro. Dados de patrimônio HNW são o ativo mais sensível do banco — a arquitetura reflete isso.</p>
+
+  <div class="s4-grid">
+    <div class="s4-card">
+      <div class="s4-card-icon"><i data-lucide="shield" style="width:20px;height:20px"></i></div>
+      <div class="s4-card-title">Isolamento de Dados</div>
+      <div class="s4-card-body">Processamento em <strong>VPC isolada</strong> (Virtual Private Cloud). Zero tráfego para infraestrutura pública compartilhada. Deployment: <strong>on-premise</strong> ou cloud privada dedicada (<strong>AWS GovCloud / Azure Sovereign</strong> compatível). Data residency <strong>100% Brasil</strong>.</div>
+    </div>
+    <div class="s4-card">
+      <div class="s4-card-icon"><i data-lucide="lock" style="width:20px;height:20px"></i></div>
+      <div class="s4-card-title">Criptografia End-to-End</div>
+      <div class="s4-card-body"><strong>TLS 1.3</strong> em trânsito. <strong>AES-256</strong> em repouso. Chaves gerenciadas pelo Safra via <strong>KMS</strong> (Key Management Service) com rotação configurável. Nenhuma chave fora do perímetro do banco.</div>
+    </div>
+    <div class="s4-card">
+      <div class="s4-card-icon"><i data-lucide="users" style="width:20px;height:20px"></i></div>
+      <div class="s4-card-title">Controle de Acesso (RBAC)</div>
+      <div class="s4-card-body"><strong>Role-Based Access Control</strong> granular por perfil, área e hierarquia. Integração nativa com <strong>Active Directory / LDAP</strong>. <strong>MFA</strong> obrigatório. <strong>Zero Trust Architecture</strong> como princípio base — nenhuma confiança implícita.</div>
+    </div>
+    <div class="s4-card">
+      <div class="s4-card-icon"><i data-lucide="file-text" style="width:20px;height:20px"></i></div>
+      <div class="s4-card-title">Rastreabilidade Total</div>
+      <div class="s4-card-body">Audit log <strong>imutável</strong>: quem perguntou, o quê, quando e qual resposta foi gerada. Exportável para <strong>SIEM</strong> (Splunk, IBM QRadar, Microsoft Sentinel). Retenção configurável conforme política interna.</div>
+    </div>
+    <div class="s4-card">
+      <div class="s4-card-icon"><i data-lucide="check-circle" style="width:20px;height:20px"></i></div>
+      <div class="s4-card-title">Conformidade Regulatória</div>
+      <div class="s4-card-body">Compatível com: <strong>LGPD</strong>, <strong>Resolução CMN 4.893</strong> (BACEN — Segurança Cibernética), <strong>ISO 27001</strong>, <strong>SOC 2 Type II</strong>. AI nunca "recomenda" — prepara análises que o gerente revisa. <strong>Humano é sempre o checkpoint final.</strong></div>
+    </div>
+    <div class="s4-card">
+      <div class="s4-card-icon"><i data-lucide="cpu" style="width:20px;height:20px"></i></div>
+      <div class="s4-card-title">Modelo de IA Privado</div>
+      <div class="s4-card-body">LLM em <strong>instância dedicada</strong> — zero compartilhamento de contexto entre sessões. <strong>RAG</strong> (Retrieval-Augmented Generation) sobre base exclusiva do Safra. Abordagem <strong>multi-modelo</strong> (Goldman Sachs): router que escolhe o melhor modelo por tarefa.</div>
+    </div>
+  </div>
+
+  <div class="s4-footer">
+    "Governança não é uma feature adicional. É a fundação da arquitetura — e a condição para qualquer conversa com compliance."
+  </div>
+</section>
+
+<!-- ══ SLIDE 5 — PRÓXIMO PASSO ══ -->
+<section class="slide" id="slide5" style="background:var(--bg)">
+  <div class="slide-header">
+    <span class="logo-text">Safra AI</span>
+    <div class="logo-sep"></div>
+    <span class="logo-sub">Executive Pitch · 2025</span>
+  </div>
+  <div class="slide-num">05</div>
+
+  <div class="gold-line"></div>
+  <h2 class="s5-title"><span>60 dias</span> para medir.<br>Uma decisão para liderar.</h2>
+  <p class="s5-sub">Piloto estruturado com um time comercial selecionado. KPIs claros desde o dia 1. Resultado mensurável — sem dependência de integração sistêmica complexa para começar.</p>
+
+  <div class="s5-cols">
+    <div class="s5-block">
+      <div class="s5-block-num">01</div>
+      <div class="s5-block-title">Estrutura do Piloto</div>
+      <div class="s5-item"><i data-lucide="chevron-right" style="width:13px;height:13px"></i><span>10–15 gerentes top performers</span></div>
+      <div class="s5-item"><i data-lucide="chevron-right" style="width:13px;height:13px"></i><span>Produtos de investimento definidos pelo Safra</span></div>
+      <div class="s5-item"><i data-lucide="chevron-right" style="width:13px;height:13px"></i><span>Base de conhecimento proprietária — sem impacto em sistemas core</span></div>
+      <div class="s5-item"><i data-lucide="chevron-right" style="width:13px;height:13px"></i><span>Ambiente segregado e auditável desde o dia 1</span></div>
+    </div>
+    <div class="s5-block">
+      <div class="s5-block-num">02</div>
+      <div class="s5-block-title">KPIs do Piloto</div>
+      <div class="s5-item"><i data-lucide="chevron-right" style="width:13px;height:13px"></i><span>Taxa de conversão (antes vs. depois)</span></div>
+      <div class="s5-item"><i data-lucide="chevron-right" style="width:13px;height:13px"></i><span>Tempo médio de preparação por reunião</span></div>
+      <div class="s5-item"><i data-lucide="chevron-right" style="width:13px;height:13px"></i><span>Volume de objeções registradas e tratadas</span></div>
+      <div class="s5-item"><i data-lucide="chevron-right" style="width:13px;height:13px"></i><span>NPS interno do time comercial</span></div>
+      <div class="s5-item"><i data-lucide="chevron-right" style="width:13px;height:13px"></i><span>Frequência e engajamento de uso</span></div>
+    </div>
+    <div class="s5-block">
+      <div class="s5-block-num">03</div>
+      <div class="s5-block-title">O que vem depois</div>
+      <div class="s5-item"><i data-lucide="chevron-right" style="width:13px;height:13px"></i><span>Expansão gradual — o modelo melhora a cada interação</span></div>
+      <div class="s5-item"><i data-lucide="chevron-right" style="width:13px;height:13px"></i><span>Alertas proativos de portfólio (Fase 2)</span></div>
+      <div class="s5-item"><i data-lucide="chevron-right" style="width:13px;height:13px"></i><span>Safra Intelligence para clientes HNW (Fase 3)</span></div>
+      <div class="s5-item"><i data-lucide="chevron-right" style="width:13px;height:13px"></i><span>Roadmap de integrações definido em conjunto</span></div>
+    </div>
+  </div>
+
+  <div class="s5-closing">
+    <div class="s5-closing-main">
+      "O mercado vai adotar inteligência na área comercial.<br>
+      A questão é quem vai <span>definir o padrão</span> — e quem vai seguir."
+    </div>
+    <div class="s5-closing-sub">O Safra tem a base. A AI tem a camada.</div>
+  </div>
+</section>
+
+<script>
+  // Gate
+  function checkGate() {
+    const val = document.getElementById('gateInput').value.trim().toLowerCase();
+    if (val === 'safra') {
+      document.getElementById('gate').classList.add('hidden');
+    } else {
+      const err = document.getElementById('gateError');
+      err.textContent = 'Senha incorreta.';
+      document.getElementById('gateInput').value = '';
+      setTimeout(() => err.textContent = '', 2000);
+    }
+  }
+  document.getElementById('gateInput').addEventListener('keydown', e => { if (e.key === 'Enter') checkGate(); });
+
+  // Lucide
+  lucide.createIcons();
+
+  // Slides
+  const slides = document.querySelectorAll('.slide');
+  const progressBar = document.getElementById('progress-bar');
+  const slideCounter = document.getElementById('slideCounter');
+  const navDotsEl = document.getElementById('navDots');
+  let currentSlide = 0;
+
+  // Build dots
+  slides.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'nav-dot' + (i === 0 ? ' active' : '');
+    d.onclick = () => slides[i].scrollIntoView({ behavior: 'smooth' });
+    navDotsEl.appendChild(d);
+  });
+
+  function updateUI(index) {
+    currentSlide = index;
+    document.querySelectorAll('.nav-dot').forEach((d, i) => d.classList.toggle('active', i === index));
+    progressBar.style.width = ((index + 1) / slides.length * 100) + '%';
+    slideCounter.textContent = String(index + 1).padStart(2, '0') + ' / ' + String(slides.length).padStart(2, '0');
+  }
+
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) updateUI(Array.from(slides).indexOf(e.target));
+    });
+  }, { threshold: 0.5 });
+  slides.forEach(s => obs.observe(s));
+
+  document.addEventListener('keydown', e => {
+    if (['ArrowDown','ArrowRight',' '].includes(e.key)) { e.preventDefault(); if (currentSlide < slides.length - 1) slides[currentSlide + 1].scrollIntoView({ behavior: 'smooth' }); }
+    if (['ArrowUp','ArrowLeft'].includes(e.key)) { e.preventDefault(); if (currentSlide > 0) slides[currentSlide - 1].scrollIntoView({ behavior: 'smooth' }); }
+  });
+</script>
+</body>
+</html>
