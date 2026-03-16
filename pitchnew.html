@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Safra AI — Proposta Técnica</title>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --gold: #c9a84c;
+    --gold-light: #e8c96a;
+    --bg: #070c1a;
+    --bg2: #0d1528;
+    --bg3: #111d35;
+    --text: #f0f4ff;
+    --muted: #7a8fb0;
+    --border: rgba(201,168,76,0.15);
+  }
+
+  html {
+    scroll-snap-type: y mandatory;
+    overflow-y: scroll;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+  }
+
+  /* Gate */
+  #gate {
+    position: fixed; inset: 0; z-index: 9999;
+    background: var(--bg);
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column; gap: 20px;
+  }
+  #gate.hidden { display: none; }
+  .gate-logo { font-size: 11px; font-weight: 700; letter-spacing: 4px; color: var(--gold); text-transform: uppercase; margin-bottom: 4px; }
+  .gate-title { font-size: 20px; font-weight: 700; color: var(--text); }
+  .gate-sub { font-size: 13px; color: var(--muted); letter-spacing: 0.5px; }
+  .gate-input {
+    padding: 14px 20px; border: 1px solid var(--border);
+    background: rgba(255,255,255,0.03); color: var(--text);
+    font-size: 15px; font-family: inherit; letter-spacing: 4px;
+    outline: none; width: 240px; text-align: center;
+    border-radius: 2px; transition: border 0.2s;
+  }
+  .gate-input:focus { border-color: var(--gold); }
+  .gate-btn {
+    padding: 13px 36px; background: var(--gold); color: #070c1a;
+    font-size: 11px; font-weight: 800; letter-spacing: 3px;
+    text-transform: uppercase; border: none; cursor: pointer;
+    font-family: inherit; border-radius: 2px; transition: opacity 0.2s;
+  }
+  .gate-btn:hover { opacity: 0.85; }
+  .gate-error { font-size: 12px; color: #e05555; min-height: 16px; }
+
+  /* Progress */
+  #progress-bar {
+    position: fixed; top: 0; left: 0; height: 2px;
+    background: linear-gradient(90deg, var(--gold), var(--gold-light));
+    z-index: 1000; transition: width 0.4s ease; width: 0%;
+  }
+
+  /* Nav dots */
+  .nav-dots {
+    position: fixed; right: 20px; top: 50%;
+    transform: translateY(-50%);
+    display: flex; flex-direction: column; gap: 8px; z-index: 1000;
+  }
+  .nav-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: rgba(201,168,76,0.3); cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  .nav-dot.active { background: var(--gold); transform: scale(1.5); }
+
+  /* Slide counter */
+  .slide-counter {
+    position: fixed; bottom: 20px; right: 36px;
+    font-size: 10px; font-weight: 500; color: var(--muted);
+    letter-spacing: 2px; z-index: 1000;
+  }
+
+  /* Slides */
+  .slide {
+    min-height: 100vh;
+    scroll-snap-align: start;
+    display: flex; flex-direction: column; justify-content: center;
+    padding: 72px 80px 72px;
+    position: relative; overflow: hidden;
+  }
+  .slide::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 80% 20%, rgba(201,168,76,0.06) 0%, transparent 55%);
+    pointer-events: none;
+  }
+
+  /* Slide header */
+  .slide-header {
+    position: absolute; top: 28px; left: 80px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .logo-text { font-size: 11px; font-weight: 700; letter-spacing: 3px; color: var(--gold); text-transform: uppercase; }
+  .logo-sep { width: 1px; height: 14px; background: var(--gold); opacity: 0.35; }
+  .logo-sub { font-size: 10px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; }
+  .slide-num { position: absolute; top: 32px; right: 80px; font-size: 10px; letter-spacing: 3px; color: var(--muted); }
+
+  .gold-line { width: 40px; height: 2px; background: linear-gradient(90deg, var(--gold), transparent); margin-bottom: 20px; }
+
+  /* ── SLIDE 1 ── */
+  .s1-eyebrow { font-size: 10px; font-weight: 700; letter-spacing: 4px; color: var(--gold); text-transform: uppercase; margin-bottom: 18px; }
+  .s1-title { font-size: 50px; font-weight: 800; line-height: 1.1; color: var(--text); margin-bottom: 14px; max-width: 720px; }
+  .s1-title span { color: var(--gold); }
+  .s1-sub { font-size: 17px; font-weight: 300; color: var(--muted); margin-bottom: 44px; }
+  .s1-body { font-size: 16px; line-height: 1.85; color: #a8bbd8; max-width: 660px; margin-bottom: 40px; }
+  .s1-stats { display: flex; gap: 48px; margin-bottom: 40px; }
+  .s1-stat-val { font-size: 32px; font-weight: 800; color: var(--gold); line-height: 1; margin-bottom: 6px; }
+  .s1-stat-label { font-size: 11px; color: var(--muted); letter-spacing: 1px; }
+  .s1-quote {
+    display: inline-flex; align-items: flex-start; gap: 16px;
+    padding: 18px 24px; border-left: 3px solid var(--gold);
+    background: rgba(201,168,76,0.06); max-width: 640px;
+    font-size: 15px; font-style: italic; color: var(--gold-light); line-height: 1.6;
+  }
+
+  /* ── SLIDE 2 ── */
+  .s2-title { font-size: 40px; font-weight: 800; color: var(--text); margin-bottom: 10px; max-width: 760px; }
+  .s2-title span { color: var(--gold); }
+  .s2-sub { font-size: 15px; color: var(--muted); margin-bottom: 44px; max-width: 660px; line-height: 1.6; }
+  .s2-cols { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-bottom: 36px; }
+  .s2-col {
+    background: rgba(255,255,255,0.02); border: 1px solid var(--border);
+    border-top: 2px solid var(--gold); padding: 26px 22px; border-radius: 2px;
+  }
+  .s2-col-icon { color: var(--gold); margin-bottom: 14px; }
+  .s2-col-label { font-size: 9px; font-weight: 700; letter-spacing: 3px; color: var(--gold); text-transform: uppercase; margin-bottom: 10px; }
+  .s2-col-title { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 10px; }
+  .s2-col-body { font-size: 13px; line-height: 1.7; color: var(--muted); }
+  .s2-impact { font-size: 14px; font-style: italic; color: var(--gold-light); border-left: 2px solid var(--gold); padding-left: 18px; line-height: 1.7; }
+
+  /* ── SLIDE 3 — ARQUITETURA DE ÁREAS ── */
+  .s3-title { font-size: 40px; font-weight: 800; color: var(--text); margin-bottom: 10px; }
+  .s3-title span { color: var(--gold); }
+  .s3-sub { font-size: 15px; color: var(--muted); margin-bottom: 32px; line-height: 1.6; max-width: 720px; }
+
+  /* Diagram */
+  .s3-diagram { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+  .s3-diagram-row { display: grid; grid-template-columns: 210px 32px 200px 32px 1fr; align-items: center; gap: 0; }
+  .s3-diagram-box {
+    background: rgba(255,255,255,0.03); border: 1px solid var(--border);
+    padding: 10px 14px; border-radius: 2px; font-size: 12px;
+    font-weight: 600; color: var(--text); text-align: center; line-height: 1.35;
+  }
+  .s3-diagram-box.joseph {
+    border-color: var(--gold); background: rgba(201,168,76,0.07);
+    color: var(--gold-light);
+  }
+  .s3-diagram-box.base {
+    border-color: rgba(201,168,76,0.3); background: rgba(255,255,255,0.02);
+    color: #a8bbd8;
+  }
+  .s3-diagram-box .box-label { font-size: 9px; font-weight: 500; letter-spacing: 1.5px; color: var(--muted); text-transform: uppercase; display: block; margin-top: 2px; }
+  .s3-arrow-h { display: flex; align-items: center; justify-content: center; color: var(--gold); font-size: 16px; font-weight: 700; }
+  .s3-global-row { display: flex; flex-direction: column; align-items: flex-end; padding-right: 0; margin-top: 4px; }
+  .s3-global-connector { display: flex; align-items: center; justify-content: flex-end; width: 100%; gap: 0; margin-bottom: 6px; }
+  .s3-global-line { flex: 1; height: 1px; background: linear-gradient(90deg, transparent, rgba(201,168,76,0.4)); }
+  .s3-global-down { width: 1px; height: 20px; background: linear-gradient(180deg, rgba(201,168,76,0.5), var(--gold)); margin-left: auto; margin-right: 14px; }
+  .s3-global-box {
+    background: rgba(201,168,76,0.04); border: 1px solid rgba(201,168,76,0.35);
+    border-top: 2px solid var(--gold); padding: 12px 18px; border-radius: 2px;
+    font-size: 12px; font-weight: 600; color: var(--gold-light); text-align: center;
+    width: 100%; margin-bottom: 8px;
+  }
+  .s3-global-box .box-label { font-size: 9px; font-weight: 500; letter-spacing: 1.5px; color: var(--muted); text-transform: uppercase; display: block; margin-top: 3px; }
+  .s3-isolation-note { font-size: 12px; color: var(--muted); font-style: italic; padding: 8px 14px; border-left: 2px solid rgba(201,168,76,0.3); margin-bottom: 20px; }
+
+  .s3-bi { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 0; }
+  .s3-panel { background: rgba(255,255,255,0.02); border: 1px solid var(--border); padding: 22px 22px; border-radius: 2px; }
+  .s3-panel-title { font-size: 9px; font-weight: 700; letter-spacing: 3px; color: var(--gold); text-transform: uppercase; margin-bottom: 16px; }
+  .s3-item { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 11px; font-size: 13px; color: #a0b4cc; line-height: 1.5; }
+  .s3-item svg { color: var(--gold); flex-shrink: 0; margin-top: 1px; }
+  .s3-item-strong { color: #c8d8f0; font-weight: 600; }
+
+  /* ── SLIDE 4 ── */
+  .s4-title { font-size: 38px; font-weight: 800; color: var(--text); margin-bottom: 10px; }
+  .s4-title span { color: var(--gold); }
+  .s4-sub { font-size: 14px; color: var(--muted); margin-bottom: 36px; line-height: 1.6; max-width: 700px; }
+  .s4-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 24px; }
+  .s4-card { background: rgba(255,255,255,0.02); border: 1px solid var(--border); padding: 20px 18px; border-radius: 2px; }
+  .s4-card-icon { color: var(--gold); margin-bottom: 10px; }
+  .s4-card-title { font-size: 9px; font-weight: 700; letter-spacing: 2px; color: var(--gold); text-transform: uppercase; margin-bottom: 9px; }
+  .s4-card-body { font-size: 12px; line-height: 1.7; color: var(--muted); }
+  .s4-card-body strong { color: #b0c4de; font-weight: 600; }
+  .s4-pii { margin-top: 8px; }
+  .s4-pii-item { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 6px; font-size: 12px; color: var(--muted); line-height: 1.5; }
+  .s4-pii-num { font-size: 10px; font-weight: 700; color: var(--gold); flex-shrink: 0; margin-top: 1px; background: rgba(201,168,76,0.1); border-radius: 50%; width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; }
+  .s4-footer { font-size: 13px; font-style: italic; color: var(--gold-light); border-left: 2px solid var(--gold); padding-left: 18px; }
+
+  /* ── SLIDE 5 ── */
+  .s5-title { font-size: 40px; font-weight: 800; color: var(--text); margin-bottom: 10px; }
+  .s5-title span { color: var(--gold); }
+  .s5-sub { font-size: 15px; color: var(--muted); margin-bottom: 36px; line-height: 1.6; }
+  .s5-params { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 28px; }
+  .s5-param { background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-top: 2px solid var(--gold); padding: 14px 16px; border-radius: 2px; }
+  .s5-param-val { font-size: 22px; font-weight: 800; color: var(--gold); line-height: 1; margin-bottom: 5px; }
+  .s5-param-label { font-size: 11px; color: var(--muted); letter-spacing: 0.5px; line-height: 1.4; }
+  .s5-cols { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-bottom: 28px; }
+  .s5-block { border-top: 2px solid var(--gold); padding-top: 20px; }
+  .s5-block-num { font-size: 28px; font-weight: 800; color: rgba(201,168,76,0.2); line-height: 1; margin-bottom: 5px; }
+  .s5-block-title { font-size: 9px; font-weight: 700; letter-spacing: 3px; color: var(--gold); text-transform: uppercase; margin-bottom: 12px; }
+  .s5-item { display: flex; align-items: flex-start; gap: 9px; margin-bottom: 9px; font-size: 13px; color: #a0b4cc; line-height: 1.5; }
+  .s5-item svg { color: var(--gold); flex-shrink: 0; margin-top: 2px; }
+  .s5-needs { margin-bottom: 28px; }
+  .s5-needs-title { font-size: 9px; font-weight: 700; letter-spacing: 3px; color: var(--gold); text-transform: uppercase; margin-bottom: 14px; }
+  .s5-needs-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+  .s5-need { background: rgba(255,255,255,0.02); border: 1px solid var(--border); padding: 12px 14px; border-radius: 2px; display: flex; align-items: flex-start; gap: 8px; }
+  .s5-need-num { font-size: 10px; font-weight: 700; color: var(--gold); flex-shrink: 0; }
+  .s5-need-text { font-size: 11px; color: var(--muted); line-height: 1.45; }
+  .s5-closing { text-align: center; padding: 28px 40px; border: 1px solid rgba(201,168,76,0.2); background: rgba(201,168,76,0.04); }
+  .s5-closing-main { font-size: 18px; font-weight: 700; color: var(--text); line-height: 1.55; margin-bottom: 12px; }
+  .s5-closing-main span { color: var(--gold); }
+  .s5-closing-sub { font-size: 14px; font-weight: 600; color: var(--gold-light); letter-spacing: 1px; }
+
+  /* Print */
+  @media print {
+    html { scroll-snap-type: none; overflow: visible; }
+    .slide { page-break-after: always; min-height: 100vh; }
+    #progress-bar, .nav-dots, .slide-counter, #gate { display: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Gate -->
+<div id="gate">
+  <div class="gate-logo">Safra AI</div>
+  <div class="gate-title">Acesso Restrito</div>
+  <div class="gate-sub">Proposta Técnica — Confidencial</div>
+  <input class="gate-input" id="gateInput" type="password" placeholder="Senha" autofocus />
+  <button class="gate-btn" onclick="checkGate()">Entrar</button>
+  <div class="gate-error" id="gateError"></div>
+</div>
+
+<div id="progress-bar"></div>
+<nav class="nav-dots" id="navDots"></nav>
+<div class="slide-counter" id="slideCounter">01 / 05</div>
+
+<!-- ══ SLIDE 1 — O PROBLEMA ══ -->
+<section class="slide" id="slide1" style="background:var(--bg)">
+  <div class="slide-header">
+    <span class="logo-text">Safra AI</span>
+    <div class="logo-sep"></div>
+    <span class="logo-sub">Proposta Técnica · 2025</span>
+  </div>
+  <div class="slide-num">01</div>
+
+  <div class="s1-eyebrow">Gestão de Conhecimento · Operações Internas</div>
+  <div class="gold-line"></div>
+  <h1 class="s1-title">O conhecimento do banco<br>não chega <span>rápido o suficiente.</span></h1>
+  <p class="s1-sub">O problema não é a falta de informação. É o tempo para encontrá-la quando importa.</p>
+
+  <div class="s1-stats">
+    <div>
+      <div class="s1-stat-val">R$10M+</div>
+      <div class="s1-stat-label">Ticket mínimo Private</div>
+    </div>
+    <div>
+      <div class="s1-stat-val">98%</div>
+      <div class="s1-stat-label">Adoção — Morgan Stanley AI</div>
+    </div>
+    <div>
+      <div class="s1-stat-val">US$2B</div>
+      <div class="s1-stat-label">Investimento anual JP Morgan em AI</div>
+    </div>
+  </div>
+
+  <p class="s1-body">
+    O Safra tem documentos, políticas, manuais, dados de clientes. Mas quando um gerente precisa de uma resposta em reunião, o conhecimento está disperso em portais, pastas compartilhadas e colegas de outra área. Um executivo tem 30 minutos para uma reunião que exigiria 3 horas de preparação.<br><br>
+    O Joseph resolve isso — conectando cada área ao seu próprio acervo de conhecimento, em tempo real, dentro do WhatsApp que o time já usa.
+  </p>
+
+  <div class="s1-quote">
+    <i data-lucide="quote" style="width:18px;height:18px;flex-shrink:0;margin-top:2px"></i>
+    "A questão não é se AI chegará ao conhecimento interno dos bancos. É quem vai definir o padrão — e quem vai seguir."
+  </div>
+</section>
+
+<!-- ══ SLIDE 2 — O PRODUTO ══ -->
+<section class="slide" id="slide2" style="background:var(--bg2)">
+  <div class="slide-header">
+    <span class="logo-text">Safra AI</span>
+    <div class="logo-sep"></div>
+    <span class="logo-sub">Proposta Técnica · 2025</span>
+  </div>
+  <div class="slide-num">02</div>
+
+  <div class="gold-line"></div>
+  <h2 class="s2-title"><span>Joseph:</span> o segundo cérebro<br>de cada área do Safra.</h2>
+  <p class="s2-sub">Não é um chatbot genérico. É uma IA conectada à base de conhecimento privada de cada área — disponível no WhatsApp, em tempo real.</p>
+
+  <div class="s2-cols">
+    <div class="s2-col">
+      <div class="s2-col-icon"><i data-lucide="calendar-check" style="width:22px;height:22px"></i></div>
+      <div class="s2-col-label">Antes da Reunião</div>
+      <div class="s2-col-title">Preparação sem busca manual</div>
+      <div class="s2-col-body">Joseph acessa os documentos da área, políticas relevantes e histórico do cliente. O gerente chega preparado — sem busca manual, sem acionar outra área.</div>
+    </div>
+    <div class="s2-col">
+      <div class="s2-col-icon"><i data-lucide="zap" style="width:22px;height:22px"></i></div>
+      <div class="s2-col-label">Durante a Conversa</div>
+      <div class="s2-col-title">Resposta com fonte rastreável</div>
+      <div class="s2-col-body">O gerente pergunta no grupo WhatsApp. Joseph busca nos documentos reais do Safra e responde com fonte rastreável. Tudo em segundos, sem sair do WhatsApp.</div>
+    </div>
+    <div class="s2-col">
+      <div class="s2-col-icon"><i data-lucide="database" style="width:22px;height:22px"></i></div>
+      <div class="s2-col-label">Após o Atendimento</div>
+      <div class="s2-col-title">Audit trail automático</div>
+      <div class="s2-col-body">Cada interação vira dado estruturado no audit trail — imutável, rastreável, pronto para compliance e análise.</div>
+    </div>
+  </div>
+
+  <div class="s2-impact">
+    "A capacidade analítica do melhor especialista da área. A velocidade de uma plataforma. A rastreabilidade que o Bacen exige. Invisível ao cliente — indispensável ao time."
+  </div>
+</section>
+
+<!-- ══ SLIDE 3 — COMO FUNCIONA ══ -->
+<section class="slide" id="slide3" style="background:var(--bg)">
+  <div class="slide-header">
+    <span class="logo-text">Safra AI</span>
+    <div class="logo-sep"></div>
+    <span class="logo-sub">Proposta Técnica · 2025</span>
+  </div>
+  <div class="slide-num">03</div>
+
+  <div class="gold-line"></div>
+  <h2 class="s3-title">Cada área tem seu próprio cérebro.<br><span>O conhecimento não vaza.</span></h2>
+  <p class="s3-sub">O Joseph de Private Banking não sabe o que o Joseph de Compliance sabe — a menos que Compliance autorize.</p>
+
+  <!-- Diagram -->
+  <div class="s3-diagram">
+    <div class="s3-diagram-row">
+      <div class="s3-diagram-box">Grupo Private Banking<span class="box-label">WhatsApp</span></div>
+      <div class="s3-arrow-h">▶</div>
+      <div class="s3-diagram-box joseph">Joseph PB<span class="box-label">Instância isolada</span></div>
+      <div class="s3-arrow-h">▶</div>
+      <div class="s3-diagram-box base">Base PB: manuais, clientes, produtos<span class="box-label">Vector DB · Qdrant</span></div>
+    </div>
+    <div class="s3-diagram-row">
+      <div class="s3-diagram-box">Grupo Compliance<span class="box-label">WhatsApp</span></div>
+      <div class="s3-arrow-h">▶</div>
+      <div class="s3-diagram-box joseph">Joseph CO<span class="box-label">Instância isolada</span></div>
+      <div class="s3-arrow-h">▶</div>
+      <div class="s3-diagram-box base">Base CO: políticas, circulares, regulatório<span class="box-label">Vector DB · Qdrant</span></div>
+    </div>
+    <div class="s3-diagram-row">
+      <div class="s3-diagram-box">Grupo Mesa de Op.<span class="box-label">WhatsApp</span></div>
+      <div class="s3-arrow-h">▶</div>
+      <div class="s3-diagram-box joseph">Joseph MO<span class="box-label">Instância isolada</span></div>
+      <div class="s3-arrow-h">▶</div>
+      <div class="s3-diagram-box base">Base MO: regulatório, operações<span class="box-label">Vector DB · Qdrant</span></div>
+    </div>
+  </div>
+  <div style="display:flex; justify-content:flex-end; padding-right:0; margin-bottom:6px;">
+    <div style="display:flex;flex-direction:column;align-items:center; margin-right: calc(50% - 100px);">
+      <div style="width:1px;height:16px;background:linear-gradient(180deg,rgba(201,168,76,0.4),var(--gold));"></div>
+      <div class="s3-diagram-box" style="background:rgba(201,168,76,0.06);border-color:var(--gold);color:var(--gold-light);min-width:340px;text-align:center;border-top:2px solid var(--gold);">
+        Base Global: políticas públicas do banco
+        <span class="box-label">Acessível por todos · Escrita só por Compliance</span>
+      </div>
+    </div>
+  </div>
+
+  <p class="s3-isolation-note">O que Joseph nunca faz: compartilhar dados de cliente de uma área com outra. Cada base é isolada. Tentativas de cruzamento são registradas no audit trail.</p>
+
+  <div class="s3-bi">
+    <div class="s3-panel">
+      <div class="s3-panel-title">O que cada área ganha</div>
+      <div class="s3-item"><i data-lucide="bar-chart-2" style="width:14px;height:14px"></i><span><span class="s3-item-strong">Diretoria:</span> visibilidade de uso e gaps de conhecimento em tempo real</span></div>
+      <div class="s3-item"><i data-lucide="shield-check" style="width:14px;height:14px"></i><span><span class="s3-item-strong">Compliance:</span> controle total sobre quem acessa o quê — com rastreabilidade</span></div>
+      <div class="s3-item"><i data-lucide="users" style="width:14px;height:14px"></i><span><span class="s3-item-strong">Private Banking:</span> respostas instantâneas sobre produtos, clientes e políticas</span></div>
+      <div class="s3-item"><i data-lucide="package" style="width:14px;height:14px"></i><span><span class="s3-item-strong">Produtos:</span> termômetro em tempo real de cada lançamento e dúvida frequente</span></div>
+    </div>
+    <div class="s3-panel">
+      <div class="s3-panel-title">O que o banco ganha</div>
+      <div class="s3-item"><i data-lucide="activity" style="width:14px;height:14px"></i><span>Inteligência operacional contínua — nenhuma conversa se perde</span></div>
+      <div class="s3-item"><i data-lucide="file-text" style="width:14px;height:14px"></i><span>Audit trail completo de cada consulta, por área e usuário</span></div>
+      <div class="s3-item"><i data-lucide="trending-up" style="width:14px;height:14px"></i><span>KPIs reais de uso: quem consulta, o quê, com que frequência</span></div>
+      <div class="s3-item"><i data-lucide="lightbulb" style="width:14px;height:14px"></i><span>Base que melhora a cada interação — modelo aprende com o uso real</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ SLIDE 4 — SEGURANÇA ══ -->
+<section class="slide" id="slide4" style="background:var(--bg2)">
+  <div class="slide-header">
+    <span class="logo-text">Safra AI</span>
+    <div class="logo-sep"></div>
+    <span class="logo-sub">Proposta Técnica · 2025</span>
+  </div>
+  <div class="slide-num">04</div>
+
+  <div class="gold-line"></div>
+  <h2 class="s4-title">Arquitetura de segurança<br><span>de nível institucional.</span></h2>
+  <p class="s4-sub">Projetado para operar sob os padrões regulatórios do sistema financeiro brasileiro. Dados do banco são o ativo mais sensível — a arquitetura reflete isso.</p>
+
+  <div class="s4-grid">
+    <div class="s4-card">
+      <div class="s4-card-icon"><i data-lucide="server" style="width:20px;height:20px"></i></div>
+      <div class="s4-card-title">Dados nunca saem do Safra</div>
+      <div class="s4-card-body">
+        <strong>Vector DB (Qdrant)</strong> e embedding model rodam <strong>on-premise</strong> no servidor do Safra. O LLM externo (Anthropic) recebe apenas o trecho relevante da pergunta — <strong>nunca o documento completo</strong>.<br><br>
+        DPA com Anthropic: dados <strong>não são usados para treino</strong>, retenção zero após processar.
+      </div>
+    </div>
+    <div class="s4-card">
+      <div class="s4-card-icon"><i data-lucide="shield" style="width:20px;height:20px"></i></div>
+      <div class="s4-card-title">PII Blocking — Três Camadas</div>
+      <div class="s4-card-body">
+        <div class="s4-pii">
+          <div class="s4-pii-item"><div class="s4-pii-num">1</div><span><strong>Na ingestão:</strong> documentos com CPF/CNPJ vão para collections restritas automaticamente</span></div>
+          <div class="s4-pii-item"><div class="s4-pii-num">2</div><span><strong>Na query:</strong> trechos sensíveis redactados antes de compor o prompt</span></div>
+          <div class="s4-pii-item"><div class="s4-pii-num">3</div><span><strong>Na resposta:</strong> middleware intercepta qualquer vazamento antes de publicar no grupo</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="s4-card">
+      <div class="s4-card-icon"><i data-lucide="lock" style="width:20px;height:20px"></i></div>
+      <div class="s4-card-title">Audit Trail Imutável</div>
+      <div class="s4-card-body">
+        <strong>SHA-256 hash-chain</strong>, append-only. Impossível alterar retroativamente.<br><br>
+        Retenção <strong>5 anos</strong> (Res. BCB 4.658/2018). Registro completo: quem perguntou, quais documentos foram consultados, hash da resposta gerada.
+      </div>
+    </div>
+    <div class="s4-card">
+      <div class="s4-card-icon"><i data-lucide="check-circle" style="width:20px;height:20px"></i></div>
+      <div class="s4-card-title">Conformidade Regulatória</div>
+      <div class="s4-card-body">
+        <strong>LGPD</strong> implementado (export + forget por titular).<br>
+        <strong>SOC 2 Type I</strong> em preparação (Q3 2026).<br>
+        Compatível com <strong>Resolução CMN 4.893</strong> (Bacen — Segurança Cibernética).<br><br>
+        Humano é sempre o <strong>checkpoint final</strong> — Joseph prepara, o gerente decide.
+      </div>
+    </div>
+  </div>
+
+  <div class="s4-footer">
+    "Governança não é uma feature adicional. É a fundação da arquitetura — e a condição para qualquer conversa com compliance."
+  </div>
+</section>
+
+<!-- ══ SLIDE 5 — PILOTO ══ -->
+<section class="slide" id="slide5" style="background:var(--bg)">
+  <div class="slide-header">
+    <span class="logo-text">Safra AI</span>
+    <div class="logo-sep"></div>
+    <span class="logo-sub">Proposta Técnica · 2025</span>
+  </div>
+  <div class="slide-num">05</div>
+
+  <div class="gold-line"></div>
+  <h2 class="s5-title"><span>6 semanas</span> para medir.<br>Uma decisão para liderar.</h2>
+  <p class="s5-sub">Piloto estruturado com parâmetros confirmados. KPIs claros desde o dia 1. Resultado mensurável — zero impacto em sistemas core.</p>
+
+  <div class="s5-params">
+    <div class="s5-param">
+      <div class="s5-param-val">5–8</div>
+      <div class="s5-param-label">grupos no piloto inicial</div>
+    </div>
+    <div class="s5-param">
+      <div class="s5-param-val">25–40</div>
+      <div class="s5-param-label">usuários (~5 por grupo)</div>
+    </div>
+    <div class="s5-param">
+      <div class="s5-param-val">100%</div>
+      <div class="s5-param-label">on-premise · servidor Safra</div>
+    </div>
+    <div class="s5-param">
+      <div class="s5-param-val">VPN</div>
+      <div class="s5-param-label">já existente · sem nova infra de rede</div>
+    </div>
+  </div>
+
+  <div class="s5-cols">
+    <div class="s5-block">
+      <div class="s5-block-num">01</div>
+      <div class="s5-block-title">Semanas 1–2: Instalação</div>
+      <div class="s5-item"><i data-lucide="chevron-right" style="width:13px;height:13px"></i><span>Qdrant + embedding model no servidor Safra</span></div>
+      <div class="s5-item"><i data-lucide="chevron-right" style="width:13px;height:13px"></i><span>Zero impacto em sistemas core</span></div>
+      <div class="s5-item"><i data-lucide="chevron-right" style="width:13px;height:13px"></i><span>Ambiente segregado e auditável desde o dia 1</span></div>
+    </div>
+    <div class="s5-block">
+      <div class="s5-block-num">02</div>
+      <div class="s5-block-title">Semanas 3–4: Integração</div>
+      <div class="s5-item"><i data-lucide="chevron-right" style="width:13px;height:13px"></i><span>RAG API + primeiros documentos de cada área</span></div>
+      <div class="s5-item"><i data-lucide="chevron-right" style="width:13px;height:13px"></i><span>Joseph integrado nos grupos piloto</span></div>
+      <div class="s5-item"><i data-lucide="chevron-right" style="width:13px;height:13px"></i><span>Collections por área configuradas e isoladas</span></div>
+    </div>
+    <div class="s5-block">
+      <div class="s5-block-num">03</div>
+      <div class="s5-block-title">Semanas 5–6: Calibração</div>
+      <div class="s5-item"><i data-lucide="chevron-right" style="width:13px;height:13px"></i><span>Testes com usuários reais do Safra</span></div>
+      <div class="s5-item"><i data-lucide="chevron-right" style="width:13px;height:13px"></i><span>Ajuste de qualidade e relevância</span></div>
+      <div class="s5-item"><i data-lucide="chevron-right" style="width:13px;height:13px"></i><span>Calibração do PII por área</span></div>
+    </div>
+  </div>
+
+  <div class="s5-needs">
+    <div class="s5-needs-title">O que o Safra precisa providenciar</div>
+    <div class="s5-needs-grid">
+      <div class="s5-need"><div class="s5-need-num">1.</div><div class="s5-need-text">Acesso ao servidor (SSH)</div></div>
+      <div class="s5-need"><div class="s5-need-num">2.</div><div class="s5-need-text">Documentos iniciais de cada área</div></div>
+      <div class="s5-need"><div class="s5-need-num">3.</div><div class="s5-need-text">Lista dos grupos piloto</div></div>
+      <div class="s5-need"><div class="s5-need-num">4.</div><div class="s5-need-text">Número WhatsApp Business para Joseph</div></div>
+      <div class="s5-need"><div class="s5-need-num">5.</div><div class="s5-need-text">Assinatura do DPA com Anthropic (guiado pelo Useculto)</div></div>
+    </div>
+  </div>
+
+  <div class="s5-closing">
+    <div class="s5-closing-main">
+      "O mercado financeiro vai adotar IA no conhecimento interno.<br>
+      A questão é quem vai <span>definir o padrão</span> — e quem vai seguir.<br>
+      O Safra tem a base de conhecimento. O Joseph tem a camada de inteligência."
+    </div>
+    <div class="s5-closing-sub">Mês 2–3: expansão · Mês 6: SOC 2 Type I · Fase 2: alertas proativos · Fase 3: Safra Intelligence HNW</div>
+  </div>
+</section>
+
+<script>
+  // Gate
+  function checkGate() {
+    const val = document.getElementById('gateInput').value.trim().toLowerCase();
+    if (val === 'safra') {
+      document.getElementById('gate').classList.add('hidden');
+    } else {
+      const err = document.getElementById('gateError');
+      err.textContent = 'Senha incorreta.';
+      document.getElementById('gateInput').value = '';
+      setTimeout(() => err.textContent = '', 2000);
+    }
+  }
+  document.getElementById('gateInput').addEventListener('keydown', e => { if (e.key === 'Enter') checkGate(); });
+
+  // Lucide
+  lucide.createIcons();
+
+  // Slides
+  const slides = document.querySelectorAll('.slide');
+  const progressBar = document.getElementById('progress-bar');
+  const slideCounter = document.getElementById('slideCounter');
+  const navDotsEl = document.getElementById('navDots');
+  let currentSlide = 0;
+
+  // Build dots
+  slides.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'nav-dot' + (i === 0 ? ' active' : '');
+    d.onclick = () => slides[i].scrollIntoView({ behavior: 'smooth' });
+    navDotsEl.appendChild(d);
+  });
+
+  function updateUI(index) {
+    currentSlide = index;
+    document.querySelectorAll('.nav-dot').forEach((d, i) => d.classList.toggle('active', i === index));
+    progressBar.style.width = ((index + 1) / slides.length * 100) + '%';
+    slideCounter.textContent = String(index + 1).padStart(2, '0') + ' / ' + String(slides.length).padStart(2, '0');
+  }
+
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) updateUI(Array.from(slides).indexOf(e.target));
+    });
+  }, { threshold: 0.5 });
+  slides.forEach(s => obs.observe(s));
+
+  document.addEventListener('keydown', e => {
+    if (['ArrowDown','ArrowRight',' '].includes(e.key)) { e.preventDefault(); if (currentSlide < slides.length - 1) slides[currentSlide + 1].scrollIntoView({ behavior: 'smooth' }); }
+    if (['ArrowUp','ArrowLeft'].includes(e.key)) { e.preventDefault(); if (currentSlide > 0) slides[currentSlide - 1].scrollIntoView({ behavior: 'smooth' }); }
+  });
+</script>
+</body>
+</html>
