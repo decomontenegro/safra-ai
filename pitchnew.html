@@ -225,6 +225,62 @@
   .s5-closing-main span { color: var(--gold); }
   .s5-closing-sub { font-size: 14px; font-weight: 600; color: var(--gold-light); letter-spacing: 1px; }
 
+  /* ── RESPONSIVE ── */
+  @media (max-width: 768px) {
+    .slide { padding: 64px 24px 40px; }
+    .slide-header { left: 24px; }
+    .slide-num { right: 24px; }
+    .nav-dots { display: none; }
+    .slide-counter { right: 20px; }
+
+    /* Slide 1 */
+    .s1-title { font-size: 30px; }
+    .s1-stats { flex-direction: column; gap: 20px; }
+    .s1-stat-val { font-size: 26px; }
+    .s1-body { font-size: 14px; }
+    .s1-quote { font-size: 13px; }
+
+    /* Slide 2 */
+    .s2-title { font-size: 26px; }
+    .s2-cols { grid-template-columns: 1fr; gap: 12px; }
+
+    /* Slide 3 */
+    .s3-title { font-size: 26px; }
+    .s3-diagram { display: none; }
+    .s3-diagram-mobile { display: flex !important; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+    .s3-mobile-area { background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-left: 3px solid var(--gold); padding: 12px 14px; border-radius: 2px; }
+    .s3-mobile-area-name { font-size: 11px; font-weight: 700; color: var(--gold); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px; }
+    .s3-mobile-area-desc { font-size: 12px; color: var(--muted); line-height: 1.5; }
+    .s3-bi { grid-template-columns: 1fr; gap: 12px; }
+    .s3-isolation-note { font-size: 11px; }
+
+    /* Slide 4 */
+    .s4-title { font-size: 26px; }
+    .s4-grid { grid-template-columns: 1fr; gap: 10px; }
+
+    /* Slide 5 */
+    .s5-title { font-size: 26px; }
+    .s5-params { grid-template-columns: 1fr 1fr; gap: 10px; }
+    .s5-cols { grid-template-columns: 1fr; gap: 16px; }
+    .s5-needs-grid { grid-template-columns: 1fr; gap: 8px; }
+    .s5-closing { padding: 20px 16px; }
+    .s5-closing-main { font-size: 14px; }
+    .s5-closing-sub { font-size: 11px; }
+  }
+
+  @media (max-width: 480px) {
+    .s1-title { font-size: 24px; }
+    .s2-title { font-size: 22px; }
+    .s3-title { font-size: 22px; }
+    .s4-title { font-size: 22px; }
+    .s5-title { font-size: 22px; }
+    .s5-params { grid-template-columns: 1fr; }
+    .s5-param-val { font-size: 18px; }
+  }
+
+  /* Diagrama mobile alternativo (só aparece em mobile) */
+  .s3-diagram-mobile { display: none; }
+
   /* Print */
   @media print {
     html { scroll-snap-type: none; overflow: visible; }
@@ -372,6 +428,26 @@
         Base Global: políticas públicas do banco
         <span class="box-label">Acessível por todos · Escrita só por Compliance</span>
       </div>
+    </div>
+  </div>
+
+  <!-- Diagrama mobile (só aparece em telas pequenas) -->
+  <div class="s3-diagram-mobile">
+    <div class="s3-mobile-area">
+      <div class="s3-mobile-area-name">Private Banking</div>
+      <div class="s3-mobile-area-desc">Joseph PB — Base isolada: manuais, clientes, produtos</div>
+    </div>
+    <div class="s3-mobile-area">
+      <div class="s3-mobile-area-name">Compliance</div>
+      <div class="s3-mobile-area-desc">Joseph CO — Base isolada: políticas, circulares, regulatório</div>
+    </div>
+    <div class="s3-mobile-area">
+      <div class="s3-mobile-area-name">Mesa de Operações</div>
+      <div class="s3-mobile-area-desc">Joseph MO — Base isolada: regulatório, operações</div>
+    </div>
+    <div class="s3-mobile-area" style="border-left-color: rgba(201,168,76,0.4); border-top: 1px solid var(--gold);">
+      <div class="s3-mobile-area-name" style="color: var(--gold-light);">Base Global</div>
+      <div class="s3-mobile-area-desc">Políticas públicas do banco — acessível por todos, escrita só por Compliance</div>
     </div>
   </div>
 
